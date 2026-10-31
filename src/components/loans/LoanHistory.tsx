@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { useId } from "react";
 import { Pagination } from "@/components/Pagination";
 import { formatDateOnly } from "@/lib/dates";
 import type { LoanView } from "@/lib/services/loanService";
@@ -26,6 +27,8 @@ export function LoanHistory({
   page,
   pageCount,
 }: LoanHistoryProps) {
+  // Next.js keeps visited pages in the DOM, and two history pages can use this component.
+  const searchId = useId();
   const hrefFor = (target: number) => {
     const params = new URLSearchParams();
     if (q) params.set("q", q);
@@ -45,22 +48,19 @@ export function LoanHistory({
         className="flex flex-wrap items-end gap-3"
       >
         <div className="flex min-w-48 flex-1 flex-col gap-1">
-          <label htmlFor="history-q" className="font-medium">
+          <label htmlFor={searchId} className="font-medium">
             {searchLabel}
           </label>
           <input
-            id="history-q"
+            id={searchId}
             name="q"
             type="search"
             maxLength={MAX_SEARCH_LENGTH}
             defaultValue={q}
-            className="rounded-md border border-foreground/40 bg-background px-3 py-2"
+            className="form-input"
           />
         </div>
-        <button
-          type="submit"
-          className="rounded-md bg-foreground px-4 py-2 font-medium text-background"
-        >
+        <button type="submit" className="button-primary">
           Search
         </button>
       </form>
@@ -74,7 +74,7 @@ export function LoanHistory({
       ) : (
         <ul className="flex flex-col gap-3">
           {loans.map((loan) => (
-            <li key={loan.id} className="rounded-md border border-foreground/20 p-4">
+            <li key={loan.id} className="card">
               <h2 className="font-semibold">
                 <Link href={`/loans/${loan.id}`} className="underline">
                   {loan.item.name}
@@ -85,7 +85,7 @@ export function LoanHistory({
                 {showBorrower && (
                   <>
                     <dt className="font-medium">Borrower</dt>
-                    <dd className="break-words">
+                    <dd>
                       {loan.borrower.name} ({loan.borrower.email})
                     </dd>
                   </>
@@ -97,9 +97,9 @@ export function LoanHistory({
                 <dt className="font-medium">Returned</dt>
                 <dd>{loan.returnDate && formatDateOnly(loan.returnDate)}</dd>
                 <dt className="font-medium">Condition at checkout</dt>
-                <dd className="break-words">{loan.checkoutCondition}</dd>
+                <dd>{loan.checkoutCondition}</dd>
                 <dt className="font-medium">Condition on return</dt>
-                <dd className="break-words">{loan.returnCondition}</dd>
+                <dd>{loan.returnCondition}</dd>
               </dl>
             </li>
           ))}

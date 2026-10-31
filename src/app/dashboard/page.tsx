@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense, type ReactNode } from "react";
+import { Page } from "@/components/layout/Page";
 import { LoanStatusBadge } from "@/components/loans/LoanStatusBadge";
 import { RequestStatusBadge } from "@/components/requests/RequestStatusBadge";
 import { LoanStatus, RequestStatus, Role } from "@/generated/prisma/enums";
@@ -26,7 +27,7 @@ type PanelProps = {
 
 function Panel({ title, total, href, empty, children }: PanelProps) {
   return (
-    <section className="flex flex-col gap-3 rounded-md border border-foreground/20 p-4">
+    <section className="card flex flex-col gap-3">
       <div className="flex flex-wrap items-baseline justify-between gap-3">
         <h2 className="text-lg font-semibold">
           {title} <span className="font-normal">({total})</span>
@@ -42,15 +43,27 @@ function Panel({ title, total, href, empty, children }: PanelProps) {
   );
 }
 
+const OPEN_REQUEST_STATUSES: RequestStatus[] = [RequestStatus.Pending, RequestStatus.Approved];
+
 function RequestRow({ request, showBorrower }: { request: RequestView; showBorrower: boolean }) {
+  // On a finished request this date would read as something still owed.
+  const open = OPEN_REQUEST_STATUSES.includes(request.status);
+
   return (
     <li className="flex flex-wrap items-start justify-between gap-2">
       <div className="min-w-0">
-        <p className="font-medium break-words">{request.item.name}</p>
-        <p className="text-sm break-words opacity-80">
-          {showBorrower ? `${request.borrower.name} · ` : ""}
-          Return by {formatDateOnly(request.requestedReturnDate)}
+        <p className="font-medium">
+          <Link href={`/catalog/${request.item.id}`} className="underline">
+            {request.item.name}
+          </Link>
         </p>
+        {(showBorrower || open) && (
+          <p className="text-sm opacity-80">
+            {showBorrower && request.borrower.name}
+            {showBorrower && open && " · "}
+            {open && `Requested return date: ${formatDateOnly(request.requestedReturnDate)}`}
+          </p>
+        )}
       </div>
       <RequestStatusBadge status={request.status} />
     </li>
@@ -61,12 +74,12 @@ function LoanRow({ loan, showBorrower }: { loan: LoanView; showBorrower: boolean
   return (
     <li className="flex flex-wrap items-start justify-between gap-2">
       <div className="min-w-0">
-        <p className="font-medium break-words">
+        <p className="font-medium">
           <Link href={`/loans/${loan.id}`} className="underline">
             {loan.item.name}
           </Link>
         </p>
-        <p className="text-sm break-words opacity-80">
+        <p className="text-sm opacity-80">
           {showBorrower ? `${loan.borrower.name} · ` : ""}
           Due {formatDateOnly(loan.agreedDueDate)}
         </p>
@@ -159,7 +172,7 @@ async function DashboardContent() {
   return (
     <>
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Welcome, {user.name}</h1>
+        <h1 className="page-title">Welcome, {user.name}</h1>
         <p>
           Signed in as {user.email} ({user.role})
         </p>
@@ -171,10 +184,10 @@ async function DashboardContent() {
 
 export default function DashboardPage() {
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-5 px-4 py-12">
+    <Page>
       <Suspense fallback={<p>Loading your dashboard…</p>}>
         <DashboardContent />
       </Suspense>
-    </main>
+    </Page>
   );
 }

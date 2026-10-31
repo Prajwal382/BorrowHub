@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { ItemStatusBadge } from "@/components/items/ItemStatusBadge";
+import { Page } from "@/components/layout/Page";
 import { Pagination } from "@/components/Pagination";
 import { ItemStatus, Role } from "@/generated/prisma/enums";
 import { requirePageUser } from "@/lib/auth/guards";
@@ -22,8 +23,6 @@ function pageHref({ q, category, status }: CatalogQuery, page: number) {
 }
 
 function SearchForm({ query, categories }: { query: CatalogQuery; categories: string[] }) {
-  const selectClass = "rounded-md border border-foreground/40 bg-background px-3 py-2";
-
   return (
     // The key refreshes these inputs when a link changes the filters without a full page load.
     <form
@@ -31,7 +30,8 @@ function SearchForm({ query, categories }: { query: CatalogQuery; categories: st
       action="/catalog"
       method="get"
       role="search"
-      className="grid gap-3 sm:grid-cols-[1fr_auto_auto_auto] sm:items-end"
+      // NFR-04: fixed proportions, as a select otherwise grows to fit its longest category.
+      className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_auto] sm:items-end"
     >
       <div className="flex flex-col gap-1">
         <label htmlFor="catalog-q" className="font-medium">
@@ -43,7 +43,7 @@ function SearchForm({ query, categories }: { query: CatalogQuery; categories: st
           type="search"
           maxLength={MAX_SEARCH_LENGTH}
           defaultValue={query.q}
-          className={selectClass}
+          className="form-input"
         />
       </div>
       <div className="flex flex-col gap-1">
@@ -54,7 +54,7 @@ function SearchForm({ query, categories }: { query: CatalogQuery; categories: st
           id="catalog-category"
           name="category"
           defaultValue={query.category ?? ""}
-          className={selectClass}
+          className="form-input"
         >
           <option value="">All categories</option>
           {categories.map((category) => (
@@ -72,7 +72,7 @@ function SearchForm({ query, categories }: { query: CatalogQuery; categories: st
           id="catalog-status"
           name="status"
           defaultValue={query.status ?? ""}
-          className={selectClass}
+          className="form-input"
         >
           <option value="">Any</option>
           {Object.values(ItemStatus).map((status) => (
@@ -82,10 +82,7 @@ function SearchForm({ query, categories }: { query: CatalogQuery; categories: st
           ))}
         </select>
       </div>
-      <button
-        type="submit"
-        className="rounded-md bg-foreground px-4 py-2 font-medium text-background"
-      >
+      <button type="submit" className="button-primary">
         Search
       </button>
     </form>
@@ -103,7 +100,7 @@ async function CatalogContent({ searchParams }: Pick<PageProps<"/catalog">, "sea
   return (
     <>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold tracking-tight">Equipment catalog</h1>
+        <h1 className="page-title">Equipment catalog</h1>
         {user.role === Role.Administrator && (
           <Link href="/admin/items/new" className="underline">
             Add item
@@ -120,9 +117,9 @@ async function CatalogContent({ searchParams }: Pick<PageProps<"/catalog">, "sea
       {items.length > 0 ? (
         <ul className="grid gap-3 sm:grid-cols-2">
           {items.map((item) => (
-            <li key={item.id} className="rounded-md border border-foreground/20 p-4">
+            <li key={item.id} className="card">
               <div className="flex items-start justify-between gap-3">
-                <h2 className="font-semibold">
+                <h2 className="min-w-0 font-semibold">
                   <Link href={`/catalog/${item.id}`} className="underline">
                     {item.name}
                   </Link>
@@ -132,7 +129,7 @@ async function CatalogContent({ searchParams }: Pick<PageProps<"/catalog">, "sea
               <p className="text-sm opacity-80">
                 {item.itemCode} · {item.category}
               </p>
-              <p className="mt-2 break-words">{item.description}</p>
+              <p className="mt-2">{item.description}</p>
             </li>
           ))}
         </ul>
@@ -152,10 +149,10 @@ async function CatalogContent({ searchParams }: Pick<PageProps<"/catalog">, "sea
 
 export default function CatalogPage({ searchParams }: PageProps<"/catalog">) {
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-5 px-4 py-12">
+    <Page>
       <Suspense fallback={<p>Loading the catalog…</p>}>
         <CatalogContent searchParams={searchParams} />
       </Suspense>
-    </main>
+    </Page>
   );
 }

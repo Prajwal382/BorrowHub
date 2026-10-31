@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { ItemForm } from "@/components/items/ItemForm";
+import { Page } from "@/components/layout/Page";
 import { Role } from "@/generated/prisma/enums";
 import { requirePageRole } from "@/lib/auth/guards";
 import { listCategories } from "@/lib/services/itemService";
@@ -13,7 +14,7 @@ async function NewItemContent() {
 
   return (
     <>
-      <h1 className="text-2xl font-semibold tracking-tight">Add item</h1>
+      <h1 className="page-title">Add item</h1>
       <ItemForm categories={categories} />
     </>
   );
@@ -21,10 +22,10 @@ async function NewItemContent() {
 
 export default function NewItemPage() {
   return (
-    <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-4 py-12">
+    <Page width="medium">
       <Suspense fallback={<p>Loading…</p>}>
         <NewItemContent />
       </Suspense>
-    </main>
+    </Page>
   );
 }

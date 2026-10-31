@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { Role } from "@/generated/prisma/enums";
 import { LogoutButton } from "@/components/layout/LogoutButton";
+import { NavLink } from "@/components/layout/NavLink";
 import { getCurrentUser } from "@/lib/auth/guards";
 import { isStaff } from "@/lib/auth/permissions";
 
@@ -11,55 +11,31 @@ export async function UserNav() {
   if (!user) {
     return (
       <>
-        <Link href="/login" className="underline">
-          Log in
-        </Link>
-        <Link href="/register" className="underline">
-          Create account
-        </Link>
+        <NavLink href="/login">Log in</NavLink>
+        <NavLink href="/register">Create account</NavLink>
       </>
     );
   }
 
   return (
     <>
-      <Link href="/dashboard" className="underline">
-        Dashboard
-      </Link>
-      <Link href="/catalog" className="underline">
-        Catalog
-      </Link>
+      <NavLink href="/dashboard">Dashboard</NavLink>
+      <NavLink href="/catalog">Catalog</NavLink>
       {user.role === Role.Borrower && (
         <>
-          <Link href="/requests" className="underline">
-            My requests
-          </Link>
-          <Link href="/loans" className="underline">
-            My loans
-          </Link>
-          <Link href="/history" className="underline">
-            My history
-          </Link>
+          <NavLink href="/requests">My requests</NavLink>
+          <NavLink href="/loans">My loans</NavLink>
+          <NavLink href="/history">My history</NavLink>
         </>
       )}
       {isStaff(user.role) && (
         <>
-          <Link href="/staff/requests" className="underline">
-            Requests
-          </Link>
-          <Link href="/staff/loans" className="underline">
-            Loans
-          </Link>
-          <Link href="/staff/history" className="underline">
-            History
-          </Link>
+          <NavLink href="/staff/requests">Requests</NavLink>
+          <NavLink href="/staff/loans">Loans</NavLink>
+          <NavLink href="/staff/history">History</NavLink>
         </>
       )}
-      {user.role === Role.Administrator && (
-        <Link href="/admin/users" className="underline">
-          Users
-        </Link>
-      )}
+      {user.role === Role.Administrator && <NavLink href="/admin/users">Users</NavLink>}
       <span>
         {user.name} ({user.role})
       </span>

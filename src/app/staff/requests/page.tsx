@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { ItemStatusBadge } from "@/components/items/ItemStatusBadge";
+import { Page } from "@/components/layout/Page";
 import { Pagination } from "@/components/Pagination";
 import { RequestActions } from "@/components/requests/RequestActions";
 import { RequestStatusBadge } from "@/components/requests/RequestStatusBadge";
@@ -41,7 +42,7 @@ async function StaffRequests({ searchParams }: Pick<PageProps<"/staff/requests">
 
   return (
     <>
-      <h1 className="text-2xl font-semibold tracking-tight">Requests</h1>
+      <h1 className="page-title">Requests</h1>
 
       <nav aria-label="Filter requests by status" className="flex flex-wrap gap-x-4 gap-y-1">
         {FILTERS.map((option) => (
@@ -65,10 +66,7 @@ async function StaffRequests({ searchParams }: Pick<PageProps<"/staff/requests">
       ) : (
         <ul className="flex flex-col gap-3">
           {requests.map((request) => (
-            <li
-              key={request.id}
-              className="flex flex-col gap-2 rounded-md border border-foreground/20 p-4"
-            >
+            <li key={request.id} className="flex flex-col gap-2 card">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <h2 className="font-semibold">
                   <Link href={`/catalog/${request.item.id}`} className="underline">
@@ -80,11 +78,11 @@ async function StaffRequests({ searchParams }: Pick<PageProps<"/staff/requests">
               </div>
               <dl className="grid gap-x-4 gap-y-1 sm:grid-cols-[auto_1fr]">
                 <dt className="font-medium">Borrower</dt>
-                <dd className="break-words">
+                <dd>
                   {request.borrower.name} ({request.borrower.email})
                 </dd>
                 <dt className="font-medium">Intended use</dt>
-                <dd className="break-words">{request.intendedUse}</dd>
+                <dd>{request.intendedUse}</dd>
                 <dt className="font-medium">Requested return</dt>
                 <dd>{formatDateOnly(request.requestedReturnDate)}</dd>
                 <dt className="font-medium">Submitted</dt>
@@ -96,7 +94,7 @@ async function StaffRequests({ searchParams }: Pick<PageProps<"/staff/requests">
                 {request.rejectionReason && (
                   <>
                     <dt className="font-medium">Reason for rejection</dt>
-                    <dd className="break-words">{request.rejectionReason}</dd>
+                    <dd>{request.rejectionReason}</dd>
                   </>
                 )}
                 {/* NFR-06 */}
@@ -119,6 +117,8 @@ async function StaffRequests({ searchParams }: Pick<PageProps<"/staff/requests">
               </dl>
               <RequestActions
                 requestId={request.id}
+                itemName={request.item.name}
+                borrowerName={request.borrower.name}
                 status={request.status}
                 itemAvailable={request.item.status === ItemStatus.Available}
                 today={toDateOnlyString(today)}
@@ -144,10 +144,10 @@ async function StaffRequests({ searchParams }: Pick<PageProps<"/staff/requests">
 
 export default function StaffRequestsPage({ searchParams }: PageProps<"/staff/requests">) {
   return (
-    <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-4 px-4 py-12">
+    <Page>
       <Suspense fallback={<p>Loading requests…</p>}>
         <StaffRequests searchParams={searchParams} />
       </Suspense>
-    </main>
+    </Page>
   );
 }

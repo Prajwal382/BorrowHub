@@ -32,7 +32,7 @@ export class ForbiddenError extends AppError {
 }
 
 export class NotFoundError extends AppError {
-  constructor(message = "Not found.") {
+  constructor(message = "We could not find that. Check the link and try again.") {
     super(404, "NOT_FOUND", message);
   }
 }

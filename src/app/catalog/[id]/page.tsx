@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ClearItemForm } from "@/components/items/ClearItemForm";
 import { ItemStatusBadge } from "@/components/items/ItemStatusBadge";
+import { Page } from "@/components/layout/Page";
 import { RequestForm } from "@/components/requests/RequestForm";
 import { ItemStatus, Role } from "@/generated/prisma/enums";
 import { requirePageUser } from "@/lib/auth/guards";
@@ -16,7 +17,13 @@ import { hasOpenRequest } from "@/lib/services/requestService";
 
 export const metadata: Metadata = { title: "Item | BorrowHub" };
 
-async function BorrowerRequestSection({ itemId, userId }: { itemId: string; userId: string }) {
+type BorrowerRequestSectionProps = {
+  itemId: string;
+  itemName: string;
+  userId: string;
+};
+
+async function BorrowerRequestSection({ itemId, itemName, userId }: BorrowerRequestSectionProps) {
   if (await hasOpenRequest(userId, itemId)) {
     return (
       <p>
@@ -28,7 +35,25 @@ async function BorrowerRequestSection({ itemId, userId }: { itemId: string; user
       </p>
     );
   }
-  return <RequestForm itemId={itemId} minReturnDate={toDateOnlyString(addDays(orgToday(), 1))} />;
+  return (
+    <RequestForm
+      itemId={itemId}
+      itemName={itemName}
+      minReturnDate={toDateOnlyString(addDays(orgToday(), 1))}
+    />
+  );
+}
+
+// Staff and administrators do not make requests, so they are told what borrowers can do.
+function requestabilityMessage(requestable: boolean, role: Role) {
+  if (role === Role.Borrower) {
+    return requestable
+      ? "This item is available to request."
+      : "This item cannot be requested right now.";
+  }
+  return requestable
+    ? "Borrowers can request this item."
+    : "Borrowers cannot request this item right now.";
 }
 
 async function ItemContent({ params }: Pick<PageProps<"/catalog/[id]">, "params">) {
@@ -50,7 +75,7 @@ async function ItemContent({ params }: Pick<PageProps<"/catalog/[id]">, "params"
         </Link>
       </p>
       <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-semibold tracking-tight break-words">{item.name}</h1>
+        <h1 className="page-title">{item.name}</h1>
         <ItemStatusBadge status={item.status} />
       </div>
       <dl className="grid gap-x-6 gap-y-2 sm:grid-cols-[auto_1fr]">
@@ -59,19 +84,15 @@ async function ItemContent({ params }: Pick<PageProps<"/catalog/[id]">, "params"
         <dt className="font-medium">Category</dt>
         <dd>{item.category}</dd>
         <dt className="font-medium">Description</dt>
-        <dd className="break-words whitespace-pre-wrap">{item.description}</dd>
+        <dd className="whitespace-pre-wrap">{item.description}</dd>
         {item.conditionNotes !== undefined && (
           <>
             <dt className="font-medium">Condition notes</dt>
-            <dd className="break-words whitespace-pre-wrap">{item.conditionNotes || "None"}</dd>
+            <dd className="whitespace-pre-wrap">{item.conditionNotes || "None"}</dd>
           </>
         )}
       </dl>
-      <p>
-        {requestable
-          ? "This item is available to request."
-          : "This item cannot be requested right now."}
-      </p>
+      <p>{requestabilityMessage(requestable, user.role)}</p>
       {user.role === Role.Administrator && (
         <p>
           <Link href={`/admin/items/${item.id}/edit`} className="underline">
@@ -84,12 +105,13 @@ async function ItemContent({ params }: Pick<PageProps<"/catalog/[id]">, "params"
         <ClearItemForm
           key={item.updatedAt.toISOString()}
           itemId={item.id}
+          itemName={item.name}
           conditionNotes={item.conditionNotes ?? ""}
         />
       )}
       {/* FR-09, SRS 2.1: requesting is a borrower function. */}
       {user.role === Role.Borrower && requestable && (
-        <BorrowerRequestSection itemId={item.id} userId={user.id} />
+        <BorrowerRequestSection itemId={item.id} itemName={item.name} userId={user.id} />
       )}
     </>
   );
@@ -97,10 +119,10 @@ async function ItemContent({ params }: Pick<PageProps<"/catalog/[id]">, "params"
 
 export default function ItemPage({ params }: PageProps<"/catalog/[id]">) {
   return (
-    <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-4 px-4 py-12">
+    <Page width="medium">
       <Suspense fallback={<p>Loading the item…</p>}>
         <ItemContent params={params} />
       </Suspense>
-    </main>
+    </Page>
   );
 }

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { RoleSelect } from "@/components/admin/RoleSelect";
+import { Page } from "@/components/layout/Page";
 import { Role } from "@/generated/prisma/enums";
 import { requirePageRole } from "@/lib/auth/guards";
 import { listUsers } from "@/lib/services/userService";
@@ -13,49 +14,33 @@ async function UsersContent() {
 
   return (
     <>
-      <h1 className="text-2xl font-semibold tracking-tight">Users</h1>
-      <div className="overflow-x-auto">
-        <table className="w-full text-left">
-          <thead className="border-b border-foreground/30">
-            <tr>
-              <th scope="col" className="py-2 pr-4 font-medium">
-                Name
-              </th>
-              <th scope="col" className="py-2 pr-4 font-medium">
-                Email
-              </th>
-              <th scope="col" className="py-2 font-medium">
-                Role
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((user) => (
-              <tr key={user.id} className="border-b border-foreground/10">
-                <td className="py-2 pr-4">{user.name}</td>
-                <td className="py-2 pr-4">{user.email}</td>
-                <td className="py-2">
-                  {user.id === admin.id ? (
-                    <span>{user.role} (you)</span>
-                  ) : (
-                    <RoleSelect userId={user.id} userName={user.name} role={user.role} />
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <h1 className="page-title">Users</h1>
+      {/* NFR-04: cards rather than a table, so a phone does not need to scroll sideways. */}
+      <ul className="flex flex-col gap-3">
+        {users.map((user) => (
+          <li key={user.id} className="card flex flex-wrap items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="font-medium">{user.name}</p>
+              <p className="text-sm opacity-80">{user.email}</p>
+            </div>
+            {user.id === admin.id ? (
+              <span>{user.role} (you)</span>
+            ) : (
+              <RoleSelect userId={user.id} userName={user.name} role={user.role} />
+            )}
+          </li>
+        ))}
+      </ul>
     </>
   );
 }
 
 export default function AdminUsersPage() {
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-4 px-4 py-12">
+    <Page>
       <Suspense fallback={<p>Loading…</p>}>
         <UsersContent />
       </Suspense>
-    </main>
+    </Page>
   );
 }

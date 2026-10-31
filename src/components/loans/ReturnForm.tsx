@@ -1,60 +1,61 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useId, type FormEvent } from "react";
+import { showNotice } from "@/components/feedback/notices";
+import { FormAlert, RequiredNote } from "@/components/forms/FormAlert";
 import { TextField } from "@/components/forms/TextField";
-import { useHydrated } from "@/components/forms/useHydrated";
+import { formValues, useFormSubmit } from "@/components/forms/useFormSubmit";
 import { ItemStatus } from "@/generated/prisma/enums";
-import { sendJson } from "@/lib/api/client";
-import type { FieldErrors } from "@/lib/errors";
 
 type ReturnFormProps = {
   loanId: string;
+  itemName: string;
   today: string;
   checkoutDate: string;
 };
 
-export function ReturnForm({ loanId, today, checkoutDate }: ReturnFormProps) {
+export function ReturnForm({ loanId, itemName, today, checkoutDate }: ReturnFormProps) {
   const router = useRouter();
-  const hydrated = useHydrated();
-  const [message, setMessage] = useState<string>();
-  const [fields, setFields] = useState<FieldErrors>();
-  const [submitting, setSubmitting] = useState(false);
+  const outcomeErrorId = useId();
+  const { formRef, message, fields, submitting, disabled, submit } = useFormSubmit({
+    conflictsAsNotice: true,
+  });
+  const outcomeInvalid = Boolean(fields?.itemOutcome);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setSubmitting(true);
-    setMessage(undefined);
-    setFields(undefined);
+    const values = formValues(event.currentTarget);
+    const result = await submit(`/api/loans/${loanId}/return`, "POST", values);
 
-    const result = await sendJson(
-      `/api/loans/${loanId}/return`,
-      "POST",
-      Object.fromEntries(new FormData(event.currentTarget)),
-    );
-    setSubmitting(false);
-
-    if (!result.ok) {
-      setMessage(result.message);
-      setFields(result.fields);
+    if (result.ok) {
+      showNotice(
+        values.itemOutcome === ItemStatus.Available
+          ? `Return recorded. ${itemName} is available to borrow.`
+          : `Return recorded. ${itemName} is unavailable until staff clear it.`,
+      );
     }
     // After a return, or if someone else got there first, this shows the loan as it now stands.
     router.refresh();
   }
 
   return (
-    <form method="post" onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
+    <form
+      ref={formRef}
+      method="post"
+      onSubmit={handleSubmit}
+      noValidate
+      className="flex flex-col gap-4"
+    >
       <h2 className="text-xl font-semibold">Record return</h2>
-      {message && (
-        <p role="alert" className="text-red-700 dark:text-red-400">
-          {message}
-        </p>
-      )}
+      <FormAlert message={message} />
+      <RequiredNote />
       <TextField
         name="returnDate"
         label="Return date"
         type="date"
         min={checkoutDate}
+        max={today}
         defaultValue={today}
         errors={fields?.returnDate}
       />
@@ -73,7 +74,10 @@ export function ReturnForm({ loanId, today, checkoutDate }: ReturnFormProps) {
       />
       {/* FR-21: there is no default, so staff must make this decision. */}
       <fieldset
-        aria-describedby={fields?.itemOutcome ? `${loanId}-outcome-error` : undefined}
+        role="radiogroup"
+        aria-required
+        aria-invalid={outcomeInvalid}
+        aria-describedby={outcomeInvalid ? outcomeErrorId : undefined}
         className="flex flex-col gap-2"
       >
         <legend className="font-medium">
@@ -93,16 +97,12 @@ export function ReturnForm({ loanId, today, checkoutDate }: ReturnFormProps) {
           <span>It needs attention. Mark it unavailable until it is cleared.</span>
         </label>
         {fields?.itemOutcome && (
-          <p id={`${loanId}-outcome-error`} className="text-sm text-red-700 dark:text-red-400">
+          <p id={outcomeErrorId} className="error-text text-sm">
             {fields.itemOutcome.join(" ")}
           </p>
         )}
       </fieldset>
-      <button
-        type="submit"
-        disabled={!hydrated || submitting}
-        className="rounded-md bg-foreground px-4 py-2 font-medium text-background disabled:opacity-60"
-      >
+      <button type="submit" disabled={disabled} className="button-primary">
         {submitting ? "Saving…" : "Record return"}
       </button>
     </form>

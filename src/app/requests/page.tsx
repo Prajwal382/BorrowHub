@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
+import { Page } from "@/components/layout/Page";
 import { Pagination } from "@/components/Pagination";
 import { RequestStatusBadge } from "@/components/requests/RequestStatusBadge";
 import { requirePageUser } from "@/lib/auth/guards";
@@ -21,7 +22,7 @@ async function MyRequests({ searchParams }: Pick<PageProps<"/requests">, "search
 
   return (
     <>
-      <h1 className="text-2xl font-semibold tracking-tight">My requests</h1>
+      <h1 className="page-title">My requests</h1>
       {requests.length === 0 ? (
         <p>
           You have no requests yet.{" "}
@@ -33,7 +34,7 @@ async function MyRequests({ searchParams }: Pick<PageProps<"/requests">, "search
       ) : (
         <ul className="flex flex-col gap-3">
           {requests.map((request) => (
-            <li key={request.id} className="rounded-md border border-foreground/20 p-4">
+            <li key={request.id} className="card">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <h2 className="font-semibold">
                   <Link href={`/catalog/${request.item.id}`} className="underline">
@@ -45,7 +46,7 @@ async function MyRequests({ searchParams }: Pick<PageProps<"/requests">, "search
               <p className="text-sm opacity-80">
                 {request.item.itemCode} · Submitted {formatDateTime(request.submittedAt)}
               </p>
-              <p className="mt-2 break-words">
+              <p className="mt-2">
                 <span className="font-medium">Intended use:</span> {request.intendedUse}
               </p>
               <p>
@@ -54,7 +55,7 @@ async function MyRequests({ searchParams }: Pick<PageProps<"/requests">, "search
               </p>
               {/* FR-11 */}
               {request.rejectionReason && (
-                <p className="break-words">
+                <p>
                   <span className="font-medium">Reason for rejection:</span>{" "}
                   {request.rejectionReason}
                 </p>
@@ -75,10 +76,10 @@ async function MyRequests({ searchParams }: Pick<PageProps<"/requests">, "search
 
 export default function RequestsPage({ searchParams }: PageProps<"/requests">) {
   return (
-    <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-4 px-4 py-12">
+    <Page width="medium">
       <Suspense fallback={<p>Loading your requests…</p>}>
         <MyRequests searchParams={searchParams} />
       </Suspense>
-    </main>
+    </Page>
   );
 }

@@ -7,12 +7,13 @@ export const metadata: Metadata = { title: "Create account | BorrowHub" };
 
 export default function RegisterPage() {
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-6 px-4 py-12">
-      <h1 className="text-2xl font-semibold tracking-tight">Create account</h1>
+    <Page width="narrow">
+      <h1 className="page-title">Create account</h1>
       <Suspense>
         <RedirectIfSignedIn />
       </Suspense>
       <RegisterForm />
-    </main>
+    </Page>
   );
 }
+import { Page } from "@/components/layout/Page";

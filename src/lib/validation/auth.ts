@@ -28,7 +28,10 @@ export const registerSchema = z.object({
 
 export const loginSchema = z.object({
   email: emailSchema,
-  password: z.string("Enter your password.").min(1, "Enter your password.").max(1024),
+  password: z
+    .string("Enter your password.")
+    .min(1, "Enter your password.")
+    .max(1024, "That password is too long."),
 });
 
 export const changeRoleSchema = z.object({

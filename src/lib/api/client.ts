@@ -20,6 +20,16 @@ export async function sendJson<Data = unknown>(
     return { ok: false, message: "Could not reach the server. Check your connection." };
   }
 
+  // NFR-02: a session that ended mid-task goes to login and returns here afterwards. The auth
+  // routes are excluded because they use this status for a wrong password.
+  if (response.status === 401 && !url.startsWith("/api/auth/")) {
+    const { pathname, search } = window.location;
+    // A full page load, for the same reason as logging out; see LogoutButton.
+    // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+    window.location.assign(`/login?next=${encodeURIComponent(`${pathname}${search}`)}`);
+    return { ok: false, message: "Your session has ended. Taking you to the login page." };
+  }
+
   const payload = await response.json().catch(() => null);
   if (response.ok) {
     return { ok: true, data: payload };

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { Page } from "@/components/layout/Page";
 import { LoanStatusBadge } from "@/components/loans/LoanStatusBadge";
 import { ReturnForm } from "@/components/loans/ReturnForm";
 import { LoanStatus } from "@/generated/prisma/enums";
@@ -39,7 +40,7 @@ async function LoanContent({ params }: Pick<PageProps<"/loans/[id]">, "params">)
         </Link>
       </p>
       <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-semibold tracking-tight break-words">{loan.item.name}</h1>
+        <h1 className="page-title">{loan.item.name}</h1>
         <LoanStatusBadge status={loan.status} overdue={loan.overdue} />
       </div>
       <dl className="grid gap-x-6 gap-y-2 sm:grid-cols-[auto_1fr]">
@@ -48,7 +49,7 @@ async function LoanContent({ params }: Pick<PageProps<"/loans/[id]">, "params">)
         {staff && (
           <>
             <dt className="font-medium">Borrower</dt>
-            <dd className="break-words">
+            <dd>
               {loan.borrower.name} ({loan.borrower.email})
             </dd>
           </>
@@ -58,7 +59,7 @@ async function LoanContent({ params }: Pick<PageProps<"/loans/[id]">, "params">)
         <dt className="font-medium">Due back</dt>
         <dd>{formatDateOnly(loan.agreedDueDate)}</dd>
         <dt className="font-medium">Condition at checkout</dt>
-        <dd className="break-words whitespace-pre-wrap">{loan.checkoutCondition}</dd>
+        <dd className="whitespace-pre-wrap">{loan.checkoutCondition}</dd>
         {/* NFR-06 */}
         {loan.checkedOutBy && (
           <>
@@ -72,13 +73,13 @@ async function LoanContent({ params }: Pick<PageProps<"/loans/[id]">, "params">)
             <dt className="font-medium">Returned</dt>
             <dd>{formatDateOnly(loan.returnDate)}</dd>
             <dt className="font-medium">Condition on return</dt>
-            <dd className="break-words whitespace-pre-wrap">{loan.returnCondition}</dd>
+            <dd className="whitespace-pre-wrap">{loan.returnCondition}</dd>
           </>
         )}
         {loan.returnConditionNotes && (
           <>
             <dt className="font-medium">Return notes</dt>
-            <dd className="break-words whitespace-pre-wrap">{loan.returnConditionNotes}</dd>
+            <dd className="whitespace-pre-wrap">{loan.returnConditionNotes}</dd>
           </>
         )}
         {loan.returnedBy && loan.returnedAt && (
@@ -94,6 +95,7 @@ async function LoanContent({ params }: Pick<PageProps<"/loans/[id]">, "params">)
       {staff && active && (
         <ReturnForm
           loanId={loan.id}
+          itemName={loan.item.name}
           today={toDateOnlyString(orgToday())}
           checkoutDate={toDateOnlyString(loan.checkoutDate)}
         />
@@ -104,10 +106,10 @@ async function LoanContent({ params }: Pick<PageProps<"/loans/[id]">, "params">)
 
 export default function LoanPage({ params }: PageProps<"/loans/[id]">) {
   return (
-    <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-4 px-4 py-12">
+    <Page width="medium">
       <Suspense fallback={<p>Loading the loan…</p>}>
         <LoanContent params={params} />
       </Suspense>
-    </main>
+    </Page>
   );
 }

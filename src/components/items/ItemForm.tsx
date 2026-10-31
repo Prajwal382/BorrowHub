@@ -1,12 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useId, useState, type FormEvent } from "react";
+import { useId, type FormEvent } from "react";
+import { showNotice } from "@/components/feedback/notices";
+import { FormAlert, RequiredNote } from "@/components/forms/FormAlert";
 import { TextField } from "@/components/forms/TextField";
-import { useHydrated } from "@/components/forms/useHydrated";
+import { formValues, useFormSubmit } from "@/components/forms/useFormSubmit";
 import { ItemStatus } from "@/generated/prisma/enums";
-import { sendJson } from "@/lib/api/client";
-import type { FieldErrors } from "@/lib/errors";
 import { ITEM_STATUS_LABELS } from "@/lib/itemStatus";
 
 type ItemFormProps = {
@@ -32,48 +32,45 @@ function statusExplanation(status: ItemStatus) {
 
 export function ItemForm({ categories, item }: ItemFormProps) {
   const router = useRouter();
-  const hydrated = useHydrated();
   const statusFieldId = useId();
-  const [message, setMessage] = useState<string>();
-  const [fields, setFields] = useState<FieldErrors>();
-  const [submitting, setSubmitting] = useState(false);
+  const statusErrorId = `${statusFieldId}-error`;
+  const { formRef, message, fields, submitting, disabled, submit } = useFormSubmit();
   // FR-05, INV-02: only an Available item (or a new one) has a status to choose here.
   const canChooseStatus = !item || item.status === ItemStatus.Available;
+  const statusErrors = fields?.status;
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = event.currentTarget;
-    setSubmitting(true);
-    setMessage(undefined);
-    setFields(undefined);
-
-    const result = await sendJson<{ item: { id: string } }>(
+    const result = await submit<{ item: { id: string; name: string } }>(
       item ? `/api/items/${item.id}` : "/api/items",
       item ? "PATCH" : "POST",
-      Object.fromEntries(new FormData(form)),
+      formValues(form),
     );
-    setSubmitting(false);
 
     if (result.ok) {
+      const { id, name } = result.data.item;
+      const path = `/catalog/${id}`;
+      showNotice(item ? `Saved changes to ${name}.` : `Added ${name} to the catalog.`, { path });
       // Next.js keeps this page alive after leaving it, so a new-item form must be emptied.
       if (!item) {
         form.reset();
       }
-      router.push(`/catalog/${result.data.item.id}`);
+      router.push(path);
       router.refresh();
-      return;
     }
-    setMessage(result.message);
-    setFields(result.fields);
   }
 
   return (
-    <form method="post" onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
-      {message && (
-        <p role="alert" className="text-red-700 dark:text-red-400">
-          {message}
-        </p>
-      )}
+    <form
+      ref={formRef}
+      method="post"
+      onSubmit={handleSubmit}
+      noValidate
+      className="flex flex-col gap-4"
+    >
+      <FormAlert message={message} />
+      <RequiredNote />
       <TextField
         name="itemCode"
         label="Item ID"
@@ -115,8 +112,9 @@ export function ItemForm({ categories, item }: ItemFormProps) {
             name="status"
             required
             defaultValue={item?.status ?? ItemStatus.Available}
-            aria-invalid={Boolean(fields?.status?.length)}
-            className="rounded-md border border-foreground/40 bg-background px-3 py-2"
+            aria-invalid={Boolean(statusErrors?.length)}
+            aria-describedby={statusErrors ? statusErrorId : undefined}
+            className="form-input"
           >
             {CHOOSABLE_STATUSES.map((status) => (
               <option key={status} value={status}>
@@ -124,8 +122,10 @@ export function ItemForm({ categories, item }: ItemFormProps) {
               </option>
             ))}
           </select>
-          {fields?.status && (
-            <p className="text-sm text-red-700 dark:text-red-400">{fields.status.join(" ")}</p>
+          {statusErrors && (
+            <p id={statusErrorId} className="error-text text-sm">
+              {statusErrors.join(" ")}
+            </p>
           )}
         </div>
       ) : (
@@ -134,11 +134,7 @@ export function ItemForm({ categories, item }: ItemFormProps) {
           {statusExplanation(item.status)}
         </p>
       )}
-      <button
-        type="submit"
-        disabled={!hydrated || submitting}
-        className="rounded-md bg-foreground px-4 py-2 font-medium text-background disabled:opacity-60"
-      >
+      <button type="submit" disabled={disabled} className="button-primary">
         {submitting ? "Saving…" : item ? "Save changes" : "Add item"}
       </button>
     </form>

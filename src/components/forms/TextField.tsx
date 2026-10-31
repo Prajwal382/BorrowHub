@@ -5,6 +5,7 @@ type TextFieldProps = {
   label: string;
   type?: "text" | "email" | "password" | "date";
   min?: string;
+  max?: string;
   autoComplete?: string;
   hint?: string;
   errors?: string[];
@@ -20,6 +21,7 @@ export function TextField({
   label,
   type = "text",
   min,
+  max,
   autoComplete,
   hint,
   errors,
@@ -42,8 +44,7 @@ export function TextField({
     defaultValue,
     "aria-invalid": hasError,
     "aria-describedby": describedBy,
-    className:
-      "rounded-md border border-foreground/40 bg-background px-3 py-2 aria-invalid:border-red-600",
+    className: "form-input",
   };
 
   return (
@@ -58,6 +59,7 @@ export function TextField({
           {...shared}
           type={type}
           min={min}
+          max={max}
           autoComplete={autoComplete}
           list={suggestions ? listId : undefined}
         />
@@ -75,7 +77,7 @@ export function TextField({
         </p>
       )}
       {hasError && (
-        <p id={errorId} className="text-sm text-red-700 dark:text-red-400">
+        <p id={errorId} className="error-text text-sm">
           {errors?.join(" ")}
         </p>
       )}

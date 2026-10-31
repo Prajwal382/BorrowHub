@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
+import { Page } from "@/components/layout/Page";
 import { LoanStatusBadge } from "@/components/loans/LoanStatusBadge";
 import { Pagination } from "@/components/Pagination";
 import { LoanStatus } from "@/generated/prisma/enums";
@@ -30,7 +31,7 @@ async function StaffLoans({ searchParams }: Pick<PageProps<"/staff/loans">, "sea
 
   return (
     <>
-      <h1 className="text-2xl font-semibold tracking-tight">Active loans</h1>
+      <h1 className="page-title">Active loans</h1>
 
       {/* FR-19, AC-04 */}
       <nav aria-label="Filter loans" className="flex flex-wrap gap-x-4 gap-y-1">
@@ -59,7 +60,7 @@ async function StaffLoans({ searchParams }: Pick<PageProps<"/staff/loans">, "sea
       ) : (
         <ul className="flex flex-col gap-3">
           {loans.map((loan) => (
-            <li key={loan.id} className="rounded-md border border-foreground/20 p-4">
+            <li key={loan.id} className="card">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <h2 className="font-semibold">
                   <Link href={`/loans/${loan.id}`} className="underline">
@@ -71,7 +72,7 @@ async function StaffLoans({ searchParams }: Pick<PageProps<"/staff/loans">, "sea
               </div>
               <dl className="mt-2 grid gap-x-4 gap-y-1 sm:grid-cols-[auto_1fr]">
                 <dt className="font-medium">Borrower</dt>
-                <dd className="break-words">
+                <dd>
                   {loan.borrower.name} ({loan.borrower.email})
                 </dd>
                 <dt className="font-medium">Checked out</dt>
@@ -102,10 +103,10 @@ async function StaffLoans({ searchParams }: Pick<PageProps<"/staff/loans">, "sea
 
 export default function StaffLoansPage({ searchParams }: PageProps<"/staff/loans">) {
   return (
-    <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-4 px-4 py-12">
+    <Page>
       <Suspense fallback={<p>Loading loans…</p>}>
         <StaffLoans searchParams={searchParams} />
       </Suspense>
-    </main>
+    </Page>
   );
 }

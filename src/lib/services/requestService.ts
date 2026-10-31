@@ -152,7 +152,8 @@ async function inDecisionTransaction<Result>(
       throw new ConflictError("Another change happened at the same time. Please try again.");
     }
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
-      throw new ConflictError("This item already has a hold."); // INV-01
+      // INV-01
+      throw new ConflictError("This item was just put on hold for someone else. Reload to see it.");
     }
     throw error;
   }

@@ -28,7 +28,7 @@ export function LogoutButton() {
         {submitting ? "Logging out…" : "Log out"}
       </button>
       {message && (
-        <span role="alert" className="text-red-700 dark:text-red-400">
+        <span role="alert" className="error-text">
           {message}
         </span>
       )}

@@ -1,56 +1,49 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import type { FormEvent } from "react";
+import { showNotice } from "@/components/feedback/notices";
+import { FormAlert, RequiredNote } from "@/components/forms/FormAlert";
 import { TextField } from "@/components/forms/TextField";
-import { useHydrated } from "@/components/forms/useHydrated";
-import { sendJson } from "@/lib/api/client";
-import type { FieldErrors } from "@/lib/errors";
+import { formValues, useFormSubmit } from "@/components/forms/useFormSubmit";
 
 type RequestFormProps = {
   itemId: string;
+  itemName: string;
   minReturnDate: string;
 };
 
-export function RequestForm({ itemId, minReturnDate }: RequestFormProps) {
+export function RequestForm({ itemId, itemName, minReturnDate }: RequestFormProps) {
   const router = useRouter();
-  const hydrated = useHydrated();
-  const [message, setMessage] = useState<string>();
-  const [fields, setFields] = useState<FieldErrors>();
-  const [submitting, setSubmitting] = useState(false);
+  const { formRef, message, fields, submitting, disabled, submit } = useFormSubmit();
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = event.currentTarget;
-    setSubmitting(true);
-    setMessage(undefined);
-    setFields(undefined);
-
-    const result = await sendJson("/api/requests", "POST", {
-      itemId,
-      ...Object.fromEntries(new FormData(form)),
-    });
-    setSubmitting(false);
+    const result = await submit("/api/requests", "POST", { itemId, ...formValues(form) });
 
     if (result.ok) {
+      showNotice(`Your request for ${itemName} was submitted. Staff will review it.`, {
+        path: "/requests",
+      });
       // Next.js keeps this page alive after leaving it, so the form must be emptied.
       form.reset();
       router.push("/requests");
       router.refresh();
-      return;
     }
-    setMessage(result.message);
-    setFields(result.fields);
   }
 
   return (
-    <form method="post" onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
+    <form
+      ref={formRef}
+      method="post"
+      onSubmit={handleSubmit}
+      noValidate
+      className="flex flex-col gap-4"
+    >
       <h2 className="text-xl font-semibold">Request this item</h2>
-      {message && (
-        <p role="alert" className="text-red-700 dark:text-red-400">
-          {message}
-        </p>
-      )}
+      <FormAlert message={message} />
+      <RequiredNote />
       <TextField
         name="intendedUse"
         label="Intended use"
@@ -66,11 +59,7 @@ export function RequestForm({ itemId, minReturnDate }: RequestFormProps) {
         hint="Must be after today."
         errors={fields?.requestedReturnDate}
       />
-      <button
-        type="submit"
-        disabled={!hydrated || submitting}
-        className="rounded-md bg-foreground px-4 py-2 font-medium text-background disabled:opacity-60"
-      >
+      <button type="submit" disabled={disabled} className="button-primary">
         {submitting ? "Submitting…" : "Submit request"}
       </button>
     </form>

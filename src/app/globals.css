@@ -3,6 +3,7 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  color-scheme: light;
 }
 
 @theme inline {
@@ -14,6 +15,8 @@
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+    /* NFR-04: without this, date picker icons are dark on the dark background. */
+    color-scheme: dark;
   }
 }
 
@@ -21,4 +24,54 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: ui-sans-serif, system-ui, sans-serif;
+  /* NFR-04: unlike break-word, this also lets flex and grid items shrink, so one long unbroken
+     value (a name or a pasted link) cannot make the whole page scroll sideways. */
+  overflow-wrap: anywhere;
+}
+
+@layer base {
+  /* NFR-04: keyboard users can always see where they are. */
+  :focus-visible {
+    outline: 2px solid var(--foreground);
+    outline-offset: 2px;
+  }
+
+  /* The rule on body would otherwise let a squeezed button split its label mid-word. */
+  button {
+    overflow-wrap: normal;
+  }
+
+  button:not(:disabled) {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
+}
+
+@layer components {
+  .page-title {
+    @apply text-2xl font-semibold tracking-tight;
+  }
+
+  .card {
+    @apply rounded-md border border-foreground/20 p-4;
+  }
+
+  .form-input {
+    @apply rounded-md border border-foreground/40 bg-background px-3 py-2 aria-invalid:border-red-600;
+  }
+
+  .button-primary {
+    @apply rounded-md bg-foreground px-4 py-2 font-medium text-background hover:opacity-90 disabled:opacity-60;
+  }
+
+  .button-secondary {
+    @apply rounded-md border border-foreground/50 px-4 py-2 hover:bg-foreground/10 disabled:opacity-60;
+  }
+
+  .error-text {
+    @apply text-red-700 dark:text-red-400;
+  }
 }

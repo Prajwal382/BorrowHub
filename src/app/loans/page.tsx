@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
+import { Page } from "@/components/layout/Page";
 import { LoanStatusBadge } from "@/components/loans/LoanStatusBadge";
 import { Pagination } from "@/components/Pagination";
 import { LoanStatus, Role } from "@/generated/prisma/enums";
@@ -22,13 +23,13 @@ async function MyLoans({ searchParams }: Pick<PageProps<"/loans">, "searchParams
 
   return (
     <>
-      <h1 className="text-2xl font-semibold tracking-tight">My loans</h1>
+      <h1 className="page-title">My loans</h1>
       {loans.length === 0 ? (
         <p>You have no items checked out right now.</p>
       ) : (
         <ul className="flex flex-col gap-3">
           {loans.map((loan) => (
-            <li key={loan.id} className="rounded-md border border-foreground/20 p-4">
+            <li key={loan.id} className="card">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <h2 className="font-semibold">
                   <Link href={`/loans/${loan.id}`} className="underline">
@@ -58,10 +59,10 @@ async function MyLoans({ searchParams }: Pick<PageProps<"/loans">, "searchParams
 
 export default function LoansPage({ searchParams }: PageProps<"/loans">) {
   return (
-    <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-4 px-4 py-12">
+    <Page width="medium">
       <Suspense fallback={<p>Loading your loans…</p>}>
         <MyLoans searchParams={searchParams} />
       </Suspense>
-    </main>
+    </Page>
   );
 }

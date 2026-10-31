@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { Page } from "@/components/layout/Page";
 import { LoanHistory } from "@/components/loans/LoanHistory";
 import { LoanStatus } from "@/generated/prisma/enums";
 import { requirePageRole } from "@/lib/auth/guards";
@@ -20,7 +21,7 @@ async function StaffHistory({ searchParams }: Pick<PageProps<"/staff/history">, 
 
   return (
     <>
-      <h1 className="text-2xl font-semibold tracking-tight">Loan history</h1>
+      <h1 className="page-title">Loan history</h1>
       <LoanHistory
         path="/staff/history"
         searchLabel="Search by item, category, or borrower"
@@ -34,10 +35,10 @@ async function StaffHistory({ searchParams }: Pick<PageProps<"/staff/history">, 
 
 export default function StaffHistoryPage({ searchParams }: PageProps<"/staff/history">) {
   return (
-    <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-4 px-4 py-12">
+    <Page>
       <Suspense fallback={<p>Loading history…</p>}>
         <StaffHistory searchParams={searchParams} />
       </Suspense>
-    </main>
+    </Page>
   );
 }
