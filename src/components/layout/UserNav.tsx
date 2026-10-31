@@ -30,14 +30,24 @@ export async function UserNav() {
         Catalog
       </Link>
       {user.role === Role.Borrower && (
-        <Link href="/requests" className="underline">
-          My requests
-        </Link>
+        <>
+          <Link href="/requests" className="underline">
+            My requests
+          </Link>
+          <Link href="/loans" className="underline">
+            My loans
+          </Link>
+        </>
       )}
       {isStaff(user.role) && (
-        <Link href="/staff/requests" className="underline">
-          Requests
-        </Link>
+        <>
+          <Link href="/staff/requests" className="underline">
+            Requests
+          </Link>
+          <Link href="/staff/loans" className="underline">
+            Loans
+          </Link>
+        </>
       )}
       {user.role === Role.Administrator && (
         <Link href="/admin/users" className="underline">

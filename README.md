@@ -33,3 +33,5 @@ Created by `npm run db:seed`. The password for all of them is `BorrowHub#2026`.
 | Staff         | `staff@borrowhub.test`     |
 | Borrower      | `borrower1@borrowhub.test` |
 | Borrower      | `borrower2@borrowhub.test` |
+
+The seed also creates one overdue demo loan: the Epson projector (`PRJ-001`), checked out to Riley Borrower. It is created once, and only if the projector is free, so running the seed again never disturbs real activity.

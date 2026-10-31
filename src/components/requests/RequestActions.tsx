@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import { CheckoutForm } from "@/components/loans/CheckoutForm";
 import { TextField } from "@/components/forms/TextField";
 import { useHydrated } from "@/components/forms/useHydrated";
 import { RequestStatus } from "@/generated/prisma/enums";
@@ -12,16 +13,26 @@ type RequestActionsProps = {
   requestId: string;
   status: RequestStatus;
   itemAvailable: boolean;
+  today: string;
+  defaultDueDate: string;
 };
 
 const primaryButton =
   "rounded-md bg-foreground px-3 py-1.5 font-medium text-background disabled:opacity-60";
 const secondaryButton = "rounded-md border border-foreground/50 px-3 py-1.5 disabled:opacity-60";
 
-export function RequestActions({ requestId, status, itemAvailable }: RequestActionsProps) {
+export function RequestActions({
+  requestId,
+  status,
+  itemAvailable,
+  today,
+  defaultDueDate,
+}: RequestActionsProps) {
   const router = useRouter();
   const hydrated = useHydrated();
-  const [mode, setMode] = useState<"idle" | "rejecting" | "confirmingCancel">("idle");
+  const [mode, setMode] = useState<"idle" | "rejecting" | "confirmingCancel" | "checkingOut">(
+    "idle",
+  );
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string>();
   const [fields, setFields] = useState<FieldErrors>();
@@ -115,7 +126,17 @@ export function RequestActions({ requestId, status, itemAvailable }: RequestActi
         </form>
       )}
 
+      {status === RequestStatus.Approved && mode === "checkingOut" && (
+        <CheckoutForm
+          requestId={requestId}
+          today={today}
+          defaultDueDate={defaultDueDate}
+          onCancel={() => setMode("idle")}
+        />
+      )}
+
       {status === RequestStatus.Approved &&
+        mode !== "checkingOut" &&
         (mode === "confirmingCancel" ? (
           <div className="flex flex-wrap items-center gap-2">
             <span>Cancel this hold and release the item?</span>
@@ -137,7 +158,15 @@ export function RequestActions({ requestId, status, itemAvailable }: RequestActi
             </button>
           </div>
         ) : (
-          <div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              className={primaryButton}
+              disabled={disabled}
+              onClick={() => setMode("checkingOut")}
+            >
+              Check out
+            </button>
             <button
               type="button"
               className={secondaryButton}

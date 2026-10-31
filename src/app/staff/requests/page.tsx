@@ -8,7 +8,7 @@ import { RequestStatusBadge } from "@/components/requests/RequestStatusBadge";
 import { ItemStatus, RequestStatus } from "@/generated/prisma/enums";
 import { requirePageRole } from "@/lib/auth/guards";
 import { STAFF_ROLES } from "@/lib/auth/permissions";
-import { formatDateOnly, formatDateTime } from "@/lib/dates";
+import { formatDateOnly, formatDateTime, orgToday, toDateOnlyString } from "@/lib/dates";
 import { REQUEST_STATUS_LABELS } from "@/lib/requestStatus";
 import { listRequests } from "@/lib/services/requestService";
 
@@ -30,6 +30,7 @@ function filterHref(filter: Filter, page = 1) {
 
 async function StaffRequests({ searchParams }: Pick<PageProps<"/staff/requests">, "searchParams">) {
   const staff = await requirePageRole(...STAFF_ROLES); // FR-02, FR-11, AC-06
+  const today = orgToday();
   const params = await searchParams;
   const filter = parseFilter(params.status);
   const requestedPage = Number(params.page);
@@ -120,6 +121,11 @@ async function StaffRequests({ searchParams }: Pick<PageProps<"/staff/requests">
                 requestId={request.id}
                 status={request.status}
                 itemAvailable={request.item.status === ItemStatus.Available}
+                today={toDateOnlyString(today)}
+                // A hold can outlast the date first asked for; the due date must not precede today.
+                defaultDueDate={toDateOnlyString(
+                  request.requestedReturnDate > today ? request.requestedReturnDate : today,
+                )}
               />
             </li>
           ))}

@@ -1,5 +1,6 @@
 import "dotenv/config";
-import { ItemStatus, Role } from "../src/generated/prisma/client";
+import { ItemStatus, RequestStatus, Role } from "../src/generated/prisma/client";
+import { addDays, orgToday } from "../src/lib/dates";
 import { prisma } from "../src/lib/db";
 import { hashPassword } from "../src/lib/services/authService";
 
@@ -86,6 +87,56 @@ const items = [
   },
 ];
 
+const OVERDUE_DEMO_REQUEST_ID = "seed-overdue-demo";
+
+// A due date cannot precede its checkout, so a real overdue loan takes days to appear. This one
+// is backdated so the overdue views (FR-19, AC-04) can be seen straight away. It is created once,
+// and only if its item is free, so re-seeding never disturbs real activity.
+async function seedOverdueLoan() {
+  const [existing, item, borrower, staff] = await Promise.all([
+    prisma.request.findUnique({ where: { id: OVERDUE_DEMO_REQUEST_ID } }),
+    prisma.item.findUniqueOrThrow({ where: { itemCode: "PRJ-001" } }),
+    prisma.user.findUniqueOrThrow({ where: { email: "borrower2@borrowhub.test" } }),
+    prisma.user.findUniqueOrThrow({ where: { email: "staff@borrowhub.test" } }),
+  ]);
+  if (existing || item.status !== ItemStatus.Available) {
+    return false;
+  }
+
+  const today = orgToday();
+  const checkoutDate = addDays(today, -10);
+  const agreedDueDate = addDays(today, -3);
+
+  await prisma.$transaction(async (tx) => {
+    await tx.request.create({
+      data: {
+        id: OVERDUE_DEMO_REQUEST_ID,
+        borrowerId: borrower.id,
+        itemId: item.id,
+        intendedUse: "Demo: projector for a club presentation",
+        requestedReturnDate: agreedDueDate,
+        submittedAt: checkoutDate,
+        status: RequestStatus.Fulfilled,
+        decidedById: staff.id,
+        decidedAt: checkoutDate,
+      },
+    });
+    await tx.loan.create({
+      data: {
+        requestId: OVERDUE_DEMO_REQUEST_ID,
+        borrowerId: borrower.id,
+        itemId: item.id,
+        checkoutDate,
+        agreedDueDate,
+        checkoutCondition: "Good. Demo loan created by the seed script.",
+        checkedOutById: staff.id,
+      },
+    });
+    await tx.item.update({ where: { id: item.id }, data: { status: ItemStatus.CheckedOut } });
+  });
+  return true;
+}
+
 async function main() {
   if (process.env.NODE_ENV === "production") {
     throw new Error("Refusing to create demo accounts in production.");
@@ -110,7 +161,10 @@ async function main() {
     });
   }
 
+  const createdLoan = await seedOverdueLoan();
+
   console.log(`Seeded ${users.length} users and ${items.length} items.`);
+  console.log(createdLoan ? "Created a demo overdue loan." : "Left existing loans unchanged.");
   console.log(`Demo password for every account: ${DEMO_PASSWORD}`);
 }
 

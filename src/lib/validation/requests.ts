@@ -1,17 +1,6 @@
 import { z } from "zod";
 import { RequestStatus } from "@/generated/prisma/enums";
-import { parseDateOnly } from "@/lib/dates";
-
-// NFR-02: the date must be real here. FR-09's "later than today" needs the clock, so
-// requestService checks that.
-const dateOnlySchema = z.string("Choose a return date.").transform((value, context) => {
-  const date = parseDateOnly(value);
-  if (!date) {
-    context.addIssue({ code: "custom", message: "Choose a valid return date." });
-    return z.NEVER;
-  }
-  return date;
-});
+import { dateOnlySchema } from "@/lib/validation/dates";
 
 export const createRequestSchema = z.object({
   itemId: z.string("Choose an item.").min(1, "Choose an item."),
@@ -20,7 +9,8 @@ export const createRequestSchema = z.object({
     .trim()
     .min(1, "Describe how you will use this item.")
     .max(500, "Intended use must be 500 characters or fewer."),
-  requestedReturnDate: dateOnlySchema,
+  // FR-09's "later than today" needs the clock, so requestService checks that.
+  requestedReturnDate: dateOnlySchema("Choose a return date.", "Choose a valid return date."),
 });
 
 export const rejectRequestSchema = z.object({
