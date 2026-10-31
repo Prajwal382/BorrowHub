@@ -1,4 +1,4 @@
-import { Role } from "@/generated/prisma/client";
+import { ItemStatus, Role } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { hashPassword } from "@/lib/services/authService";
 
@@ -18,6 +18,27 @@ export async function createUser(key: string, role: Role = Role.Borrower) {
       name: key,
       role,
       passwordHash: await passwordHash,
+    },
+  });
+}
+
+export function createTestItem(
+  itemCode: string,
+  overrides: Partial<{
+    name: string;
+    description: string;
+    category: string;
+    conditionNotes: string;
+    status: ItemStatus;
+  }> = {},
+) {
+  return prisma.item.create({
+    data: {
+      itemCode,
+      name: `Item ${itemCode}`,
+      description: "A test item.",
+      category: "Cameras",
+      ...overrides,
     },
   });
 }

@@ -25,6 +25,9 @@ export async function UserNav() {
       <Link href="/dashboard" className="underline">
         Dashboard
       </Link>
+      <Link href="/catalog" className="underline">
+        Catalog
+      </Link>
       {user.role === Role.Administrator && (
         <Link href="/admin/users" className="underline">
           Users
