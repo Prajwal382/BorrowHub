@@ -1,0 +1,3 @@
+# Keep LF everywhere. Prisma checksums migration files, so CRLF conversion on Windows
+# would make applied migrations look edited.
+* text=auto eol=lf

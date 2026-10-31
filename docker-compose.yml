@@ -1,0 +1,41 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: borrowhub-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: borrowhub
+      POSTGRES_PASSWORD: borrowhub
+      POSTGRES_DB: borrowhub
+    ports:
+      - "5432:5432"
+    volumes:
+      # NFR-07: records survive application and container restarts.
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U borrowhub -d borrowhub"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  postgres-test:
+    image: postgres:17-alpine
+    container_name: borrowhub-postgres-test
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: borrowhub
+      POSTGRES_PASSWORD: borrowhub
+      POSTGRES_DB: borrowhub_test
+    ports:
+      - "5433:5432"
+    # Test data is disposable, so it lives in memory.
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U borrowhub -d borrowhub_test"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres-data:

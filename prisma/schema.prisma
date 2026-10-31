@@ -1,0 +1,164 @@
+// Partial unique indexes and CHECK constraints cannot be expressed in this file.
+// They live in prisma/migrations/*_integrity_constraints/migration.sql.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  Borrower
+  Staff
+  Administrator
+}
+
+enum ItemStatus {
+  Available
+  Held
+  CheckedOut
+  Unavailable
+}
+
+enum RequestStatus {
+  Pending
+  Approved
+  Rejected
+  Cancelled
+  Fulfilled
+}
+
+// Overdue is derived from an Active loan's due date and is never stored (SRS section 4, FR-19).
+enum LoanStatus {
+  Active
+  Closed
+}
+
+enum AuditAction {
+  ItemCreated
+  ItemUpdated
+  ItemCleared
+  RequestApproved
+  RequestRejected
+  HoldCancelled
+  ItemCheckedOut
+  ItemReturned
+  UserRoleChanged
+}
+
+// All foreign keys use onDelete: Restrict so history keeps its references (FR-06, INV-03).
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String // NFR-01: salted hash, never plaintext.
+  role         Role     @default(Borrower)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  requests          Request[]  @relation("RequestBorrower")
+  decidedRequests   Request[]  @relation("RequestDecidedBy")
+  cancelledRequests Request[]  @relation("RequestCancelledBy")
+  loans             Loan[]     @relation("LoanBorrower")
+  checkoutsRecorded Loan[]     @relation("LoanCheckedOutBy")
+  returnsRecorded   Loan[]     @relation("LoanReturnedBy")
+  auditLogs         AuditLog[]
+}
+
+model Item {
+  id             String     @id @default(cuid())
+  itemCode       String     @unique // FR-05, FR-06: the unique physical equipment identifier.
+  name           String
+  description    String
+  category       String
+  conditionNotes String     @default("")
+  status         ItemStatus @default(Available)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  requests Request[]
+  loans    Loan[]
+
+  @@index([name])
+  @@index([category])
+  @@index([status])
+}
+
+// An Approved request is the hold on its item (SRS 1.3); there is no separate hold table.
+model Request {
+  id                  String        @id @default(cuid())
+  borrowerId          String
+  itemId              String
+  intendedUse         String
+  requestedReturnDate DateTime      @db.Date
+  submittedAt         DateTime      @default(now())
+  status              RequestStatus @default(Pending)
+
+  decidedById     String?
+  decidedAt       DateTime?
+  rejectionReason String? // FR-11: required when Rejected, enforced by a CHECK constraint.
+
+  cancelledById String?
+  cancelledAt   DateTime?
+
+  borrower    User  @relation("RequestBorrower", fields: [borrowerId], references: [id], onDelete: Restrict)
+  item        Item  @relation(fields: [itemId], references: [id], onDelete: Restrict)
+  decidedBy   User? @relation("RequestDecidedBy", fields: [decidedById], references: [id], onDelete: Restrict)
+  cancelledBy User? @relation("RequestCancelledBy", fields: [cancelledById], references: [id], onDelete: Restrict)
+  loan        Loan?
+
+  @@index([borrowerId, status])
+  @@index([itemId, status])
+  @@index([status, submittedAt])
+}
+
+model Loan {
+  id                String     @id @default(cuid())
+  requestId         String     @unique // NFR-03: a request can only ever produce one loan.
+  borrowerId        String
+  itemId            String
+  status            LoanStatus @default(Active)
+  checkoutDate      DateTime   @db.Date
+  agreedDueDate     DateTime   @db.Date
+  checkoutCondition String
+  checkedOutById    String
+
+  returnDate           DateTime? @db.Date
+  returnCondition      String?
+  returnConditionNotes String?
+  returnedById         String?
+  returnedAt           DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  request      Request @relation(fields: [requestId], references: [id], onDelete: Restrict)
+  borrower     User    @relation("LoanBorrower", fields: [borrowerId], references: [id], onDelete: Restrict)
+  item         Item    @relation(fields: [itemId], references: [id], onDelete: Restrict)
+  checkedOutBy User    @relation("LoanCheckedOutBy", fields: [checkedOutById], references: [id], onDelete: Restrict)
+  returnedBy   User?   @relation("LoanReturnedBy", fields: [returnedById], references: [id], onDelete: Restrict)
+
+  @@index([borrowerId, status])
+  @@index([itemId, status])
+  @@index([status, agreedDueDate])
+}
+
+// NFR-06: acting user and timestamp for every staff or administrator state change.
+model AuditLog {
+  id         String      @id @default(cuid())
+  actorId    String
+  action     AuditAction
+  entityType String
+  entityId   String
+  details    Json?
+  createdAt  DateTime    @default(now())
+
+  actor User @relation(fields: [actorId], references: [id], onDelete: Restrict)
+
+  @@index([entityType, entityId])
+  @@index([actorId, createdAt])
+}
