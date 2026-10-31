@@ -3,7 +3,8 @@ import { useId } from "react";
 type TextFieldProps = {
   name: string;
   label: string;
-  type?: "text" | "email" | "password";
+  type?: "text" | "email" | "password" | "date";
+  min?: string;
   autoComplete?: string;
   hint?: string;
   errors?: string[];
@@ -18,6 +19,7 @@ export function TextField({
   name,
   label,
   type = "text",
+  min,
   autoComplete,
   hint,
   errors,
@@ -55,6 +57,7 @@ export function TextField({
         <input
           {...shared}
           type={type}
+          min={min}
           autoComplete={autoComplete}
           list={suggestions ? listId : undefined}
         />

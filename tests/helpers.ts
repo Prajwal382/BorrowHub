@@ -8,6 +8,23 @@ export async function resetDatabase() {
   await prisma.$executeRaw`TRUNCATE "AuditLog", "Loan", "Request", "Item", "User" CASCADE`;
 }
 
+// Makes every audit write fail, to prove a transaction leaves nothing behind when it does.
+export async function withFailingAuditLog(work: () => Promise<void>) {
+  await prisma.$executeRaw`
+    CREATE FUNCTION test_fail_audit() RETURNS trigger AS $$
+    BEGIN RAISE EXCEPTION 'audit log unavailable'; END;
+    $$ LANGUAGE plpgsql`;
+  await prisma.$executeRaw`
+    CREATE TRIGGER test_fail_audit BEFORE INSERT ON "AuditLog"
+    FOR EACH ROW EXECUTE FUNCTION test_fail_audit()`;
+  try {
+    await work();
+  } finally {
+    await prisma.$executeRaw`DROP TRIGGER test_fail_audit ON "AuditLog"`;
+    await prisma.$executeRaw`DROP FUNCTION test_fail_audit()`;
+  }
+}
+
 let passwordHash: Promise<string> | undefined;
 
 export async function createUser(key: string, role: Role = Role.Borrower) {

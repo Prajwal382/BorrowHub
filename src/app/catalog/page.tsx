@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { ItemStatusBadge } from "@/components/items/ItemStatusBadge";
+import { Pagination } from "@/components/Pagination";
 import { ItemStatus, Role } from "@/generated/prisma/enums";
 import { requirePageUser } from "@/lib/auth/guards";
 import { ITEM_STATUS_LABELS } from "@/lib/itemStatus";
@@ -139,27 +140,12 @@ async function CatalogContent({ searchParams }: Pick<PageProps<"/catalog">, "sea
         <p>No items match your search. Try different words or clear the filters.</p>
       )}
 
-      {pageCount > 1 && (
-        <nav aria-label="Catalog pages" className="flex items-center justify-between gap-3">
-          {page > 1 ? (
-            <Link href={pageHref(query, page - 1)} className="underline">
-              Previous
-            </Link>
-          ) : (
-            <span />
-          )}
-          <span>
-            Page {page} of {pageCount}
-          </span>
-          {page < pageCount ? (
-            <Link href={pageHref(query, page + 1)} className="underline">
-              Next
-            </Link>
-          ) : (
-            <span />
-          )}
-        </nav>
-      )}
+      <Pagination
+        label="Catalog pages"
+        page={page}
+        pageCount={pageCount}
+        hrefFor={(target) => pageHref(query, target)}
+      />
     </>
   );
 }

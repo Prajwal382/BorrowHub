@@ -28,6 +28,7 @@ export default defineConfig({
       // Everything under test, including src/lib/db.ts, connects to the test database only.
       DATABASE_URL: TEST_DATABASE_URL,
       SESSION_SECRET: "test-only-session-secret-at-least-32-characters",
+      ORG_TIME_ZONE: "America/Chicago",
     },
   },
 });

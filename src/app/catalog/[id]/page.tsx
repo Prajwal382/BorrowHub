@@ -3,13 +3,31 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ItemStatusBadge } from "@/components/items/ItemStatusBadge";
+import { RequestForm } from "@/components/requests/RequestForm";
 import { Role } from "@/generated/prisma/enums";
 import { requirePageUser } from "@/lib/auth/guards";
+import { addDays, orgToday, toDateOnlyString } from "@/lib/dates";
 import { NotFoundError } from "@/lib/errors";
 import { isRequestable } from "@/lib/itemStatus";
 import { getItem } from "@/lib/services/itemService";
+import { hasOpenRequest } from "@/lib/services/requestService";
 
 export const metadata: Metadata = { title: "Item | BorrowHub" };
+
+async function BorrowerRequestSection({ itemId, userId }: { itemId: string; userId: string }) {
+  if (await hasOpenRequest(userId, itemId)) {
+    return (
+      <p>
+        You already have an open request for this item. See{" "}
+        <Link href="/requests" className="underline">
+          My requests
+        </Link>
+        .
+      </p>
+    );
+  }
+  return <RequestForm itemId={itemId} minReturnDate={toDateOnlyString(addDays(orgToday(), 1))} />;
+}
 
 async function ItemContent({ params }: Pick<PageProps<"/catalog/[id]">, "params">) {
   const user = await requirePageUser(); // FR-07
@@ -20,6 +38,7 @@ async function ItemContent({ params }: Pick<PageProps<"/catalog/[id]">, "params"
     }
     throw error;
   });
+  const requestable = isRequestable(item.status); // FR-08
 
   return (
     <>
@@ -46,9 +65,8 @@ async function ItemContent({ params }: Pick<PageProps<"/catalog/[id]">, "params"
           </>
         )}
       </dl>
-      {/* FR-08 */}
       <p>
-        {isRequestable(item.status)
+        {requestable
           ? "This item is available to request."
           : "This item cannot be requested right now."}
       </p>
@@ -58,6 +76,10 @@ async function ItemContent({ params }: Pick<PageProps<"/catalog/[id]">, "params"
             Edit item
           </Link>
         </p>
+      )}
+      {/* FR-09, SRS 2.1: requesting is a borrower function. */}
+      {user.role === Role.Borrower && requestable && (
+        <BorrowerRequestSection itemId={item.id} userId={user.id} />
       )}
     </>
   );

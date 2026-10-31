@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Role } from "@/generated/prisma/enums";
 import { LogoutButton } from "@/components/layout/LogoutButton";
 import { getCurrentUser } from "@/lib/auth/guards";
+import { isStaff } from "@/lib/auth/permissions";
 
 // Hiding a link is a convenience only. Pages and API routes enforce their own access (FR-02).
 export async function UserNav() {
@@ -28,6 +29,16 @@ export async function UserNav() {
       <Link href="/catalog" className="underline">
         Catalog
       </Link>
+      {user.role === Role.Borrower && (
+        <Link href="/requests" className="underline">
+          My requests
+        </Link>
+      )}
+      {isStaff(user.role) && (
+        <Link href="/staff/requests" className="underline">
+          Requests
+        </Link>
+      )}
       {user.role === Role.Administrator && (
         <Link href="/admin/users" className="underline">
           Users

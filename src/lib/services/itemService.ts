@@ -97,8 +97,10 @@ async function canonicalCategory(tx: Prisma.TransactionClient, category: string)
 
 function rethrowDuplicateCode(error: unknown): never {
   if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
-    const message = "Another item already uses this item ID.";
-    throw new ConflictError(message, { itemCode: [message] }); // FR-06
+    // FR-06
+    throw new ConflictError("Please correct the highlighted fields.", {
+      itemCode: ["Another item already uses this item ID."],
+    });
   }
   throw error;
 }
