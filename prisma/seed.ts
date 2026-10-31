@@ -1,10 +1,9 @@
 import "dotenv/config";
-import bcrypt from "bcrypt";
 import { ItemStatus, Role } from "../src/generated/prisma/client";
 import { prisma } from "../src/lib/db";
+import { hashPassword } from "../src/lib/services/authService";
 
 const DEMO_PASSWORD = "BorrowHub#2026";
-const BCRYPT_ROUNDS = 12;
 
 const users = [
   { email: "admin@borrowhub.test", name: "Avery Admin", role: Role.Administrator },
@@ -92,7 +91,7 @@ async function main() {
     throw new Error("Refusing to create demo accounts in production.");
   }
 
-  const passwordHash = await bcrypt.hash(DEMO_PASSWORD, BCRYPT_ROUNDS);
+  const passwordHash = await hashPassword(DEMO_PASSWORD);
 
   // Upserts keep the seed safe to run repeatedly without touching item status in use.
   for (const user of users) {

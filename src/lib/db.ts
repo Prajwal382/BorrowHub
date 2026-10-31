@@ -1,5 +1,5 @@
 import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient } from "@/generated/prisma/client";
+import { Prisma, PrismaClient } from "@/generated/prisma/client";
 
 function createClient() {
   const connectionString = process.env.DATABASE_URL;
@@ -16,4 +16,17 @@ export const prisma = globalForPrisma.prisma ?? createClient();
 
 if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prisma = prisma;
+}
+
+// A transaction lost a race with another one. Prisma reports this as P2034 inside a query,
+// but the pg adapter throws a raw DriverAdapterError when the conflict surfaces at commit.
+export function isWriteConflict(error: unknown) {
+  if (error instanceof Prisma.PrismaClientKnownRequestError) {
+    return error.code === "P2034";
+  }
+  return (
+    error instanceof Error &&
+    error.name === "DriverAdapterError" &&
+    (error.cause as { kind?: string } | undefined)?.kind === "TransactionWriteConflict"
+  );
 }
