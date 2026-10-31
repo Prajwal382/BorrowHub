@@ -1,3 +1,4 @@
+import { unstable_rethrow } from "next/navigation";
 import { ZodError, z } from "zod";
 import { AppError, ValidationError, type FieldErrors } from "@/lib/errors";
 
@@ -14,6 +15,8 @@ export function apiHandler<Context = unknown>(handler: Handler<Context>): Handle
     try {
       return await handler(request, context);
     } catch (error) {
+      // Next.js signals things like "stop prerendering here" by throwing. Those are not failures.
+      unstable_rethrow(error);
       if (error instanceof AppError) {
         return errorResponse(error.status, error.code, error.message, error.fields);
       }
