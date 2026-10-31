@@ -10,7 +10,8 @@ import { assertCanAccessOwnedRecord, isStaff } from "@/lib/auth/permissions";
 import { orgToday } from "@/lib/dates";
 import { isWriteConflict, prisma } from "@/lib/db";
 import { ConflictError, NotFoundError, ValidationError } from "@/lib/errors";
-import type { CheckoutInput, LoanQuery } from "@/lib/validation/loans";
+import { containsText } from "@/lib/search";
+import type { CheckoutInput, LoanQuery, ReturnInput } from "@/lib/validation/loans";
 
 export const LOANS_PAGE_SIZE = 20;
 
@@ -148,12 +149,23 @@ export async function checkoutRequest(
 // FR-04, FR-18: borrowers only ever list their own loans.
 export async function listLoans(
   actor: Actor,
-  { status, overdue, page: requested }: LoanQuery,
+  { q, status, overdue, page: requested }: LoanQuery,
   now: Date = new Date(),
 ) {
+  const contains = q ? containsText(q) : undefined;
   const where: Prisma.LoanWhereInput = {
     ...(!isStaff(actor.role) && { borrowerId: actor.id }),
     ...(status && { status }),
+    // FR-23: the borrower filter above still applies, so this cannot reach other people's loans.
+    ...(contains && {
+      OR: [
+        { item: { name: contains } },
+        { item: { itemCode: contains } },
+        { item: { category: contains } },
+        { borrower: { name: contains } },
+        { borrower: { email: contains } },
+      ],
+    }),
     // FR-19, AC-04: the same rule as isLoanOverdue, expressed as a query.
     ...(overdue && { status: LoanStatus.Active, agreedDueDate: { lt: orgToday(now) } }),
   };
@@ -164,8 +176,11 @@ export async function listLoans(
   const loans = await prisma.loan.findMany({
     where,
     select: loanSelect,
-    // Whatever is due soonest needs attention first.
-    orderBy: [{ agreedDueDate: "asc" }, { createdAt: "asc" }],
+    // History shows the latest returns first; otherwise what is due soonest needs attention first.
+    orderBy:
+      status === LoanStatus.Closed
+        ? [{ returnedAt: "desc" }]
+        : [{ agreedDueDate: "asc" }, { createdAt: "asc" }],
     skip: (page - 1) * LOANS_PAGE_SIZE,
     take: LOANS_PAGE_SIZE,
   });
@@ -177,6 +192,88 @@ export async function listLoans(
     pageCount,
     pageSize: LOANS_PAGE_SIZE,
   };
+}
+
+// FR-20, FR-21, FR-22, NFR-03, AC-05: one transaction closes the loan and releases or flags the
+// item. The conditional updates mean a repeated return matches nothing, and the closed loan stays
+// as permanent history.
+export async function returnLoan(
+  actorId: string,
+  loanId: string,
+  input: ReturnInput,
+  now: Date = new Date(),
+): Promise<LoanView> {
+  if (input.returnDate > orgToday(now)) {
+    throw new ValidationError("Please correct the highlighted fields.", {
+      returnDate: ["The return date cannot be in the future."],
+    });
+  }
+
+  try {
+    await prisma.$transaction(async (tx) => {
+      const loan = await tx.loan.findUnique({
+        where: { id: loanId },
+        select: { itemId: true, borrowerId: true, checkoutDate: true },
+      });
+      if (!loan) {
+        throw new NotFoundError("That loan could not be found.");
+      }
+      if (input.returnDate < loan.checkoutDate) {
+        throw new ValidationError("Please correct the highlighted fields.", {
+          returnDate: ["The return date cannot be before the checkout date."],
+        });
+      }
+
+      const { count } = await tx.loan.updateMany({
+        where: { id: loanId, status: LoanStatus.Active },
+        data: {
+          status: LoanStatus.Closed,
+          returnDate: input.returnDate,
+          returnCondition: input.returnCondition,
+          returnConditionNotes: input.returnConditionNotes || null,
+          returnedById: actorId,
+          returnedAt: now,
+        },
+      });
+      if (count === 0) {
+        throw new ConflictError("This loan has already been returned. Reload to see its status.");
+      }
+
+      // FR-05: the inspection becomes the item's current condition. Earlier notes stay on the loans.
+      const item = await tx.item.updateMany({
+        where: { id: loan.itemId, status: ItemStatus.CheckedOut },
+        data: {
+          status: input.itemOutcome,
+          conditionNotes: input.returnConditionNotes || input.returnCondition,
+        },
+      });
+      if (item.count === 0) {
+        throw new ConflictError("This item is not checked out, so it cannot be returned.");
+      }
+
+      await tx.auditLog.create({
+        data: {
+          actorId,
+          action: AuditAction.ItemReturned,
+          entityType: "Loan",
+          entityId: loanId,
+          details: {
+            itemId: loan.itemId,
+            borrowerId: loan.borrowerId,
+            itemOutcome: input.itemOutcome,
+          },
+        },
+      });
+    });
+  } catch (error) {
+    if (isWriteConflict(error)) {
+      throw new ConflictError("Another change happened at the same time. Please try again.");
+    }
+    throw error;
+  }
+
+  const loan = await prisma.loan.findUniqueOrThrow({ where: { id: loanId }, select: loanSelect });
+  return forRole(loan, Role.Staff, now);
 }
 
 // FR-04, AC-06: another borrower's loan looks exactly like one that does not exist.

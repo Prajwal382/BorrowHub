@@ -2,7 +2,13 @@ import { AuditAction, ItemStatus, Prisma, type Role } from "@/generated/prisma/c
 import { isStaff } from "@/lib/auth/permissions";
 import { prisma } from "@/lib/db";
 import { ConflictError, NotFoundError } from "@/lib/errors";
-import type { CatalogQuery, CreateItemInput, UpdateItemInput } from "@/lib/validation/items";
+import { containsText } from "@/lib/search";
+import type {
+  CatalogQuery,
+  ClearItemInput,
+  CreateItemInput,
+  UpdateItemInput,
+} from "@/lib/validation/items";
 
 export const CATALOG_PAGE_SIZE = 20;
 
@@ -28,14 +34,9 @@ function forRole(item: ItemRecord, role: Role): CatalogItem {
   return isStaff(role) ? { ...visible, conditionNotes } : visible;
 }
 
-// Prisma passes these through to LIKE, so a search for "100%" must not act as a wildcard.
-function escapeLike(value: string) {
-  return value.replace(/[\\%_]/g, "\\$&");
-}
-
 // FR-07: search by name or category, or by item ID so staff can find a unit they are holding.
 function catalogWhere({ q, category, status }: CatalogQuery): Prisma.ItemWhereInput {
-  const contains = q ? { contains: escapeLike(q), mode: "insensitive" as const } : undefined;
+  const contains = q ? containsText(q) : undefined;
   return {
     ...(contains && {
       OR: [{ name: contains }, { category: contains }, { itemCode: contains }],
@@ -140,6 +141,41 @@ function assertStatusChangeAllowed(from: ItemStatus, to: ItemStatus) {
   throw new ConflictError(
     "This item is on hold or checked out, so its status changes through that process.",
   );
+}
+
+// FR-21, NFR-06: explicit clearance is the only way from Unavailable back to Available.
+export async function clearItem(
+  actorId: string,
+  id: string,
+  { conditionNotes }: ClearItemInput,
+): Promise<ItemRecord> {
+  return prisma.$transaction(async (tx) => {
+    const [cleared] = await tx.item.updateManyAndReturn({
+      where: { id, status: ItemStatus.Unavailable },
+      data: {
+        status: ItemStatus.Available,
+        ...(conditionNotes !== undefined && { conditionNotes }),
+      },
+      select: itemSelect,
+    });
+    if (!cleared) {
+      const exists = await tx.item.count({ where: { id } });
+      throw exists
+        ? new ConflictError("Only an unavailable item can be cleared. Reload to see its status.")
+        : new NotFoundError("That item could not be found.");
+    }
+
+    await tx.auditLog.create({
+      data: {
+        actorId,
+        action: AuditAction.ItemCleared,
+        entityType: "Item",
+        entityId: id,
+        details: { itemCode: cleared.itemCode },
+      },
+    });
+    return cleared;
+  });
 }
 
 const EDITABLE_FIELDS = [

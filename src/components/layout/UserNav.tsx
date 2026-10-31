@@ -37,6 +37,9 @@ export async function UserNav() {
           <Link href="/loans" className="underline">
             My loans
           </Link>
+          <Link href="/history" className="underline">
+            My history
+          </Link>
         </>
       )}
       {isStaff(user.role) && (
@@ -46,6 +49,9 @@ export async function UserNav() {
           </Link>
           <Link href="/staff/loans" className="underline">
             Loans
+          </Link>
+          <Link href="/staff/history" className="underline">
+            History
           </Link>
         </>
       )}

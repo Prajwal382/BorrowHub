@@ -3,9 +3,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { LoanStatusBadge } from "@/components/loans/LoanStatusBadge";
+import { ReturnForm } from "@/components/loans/ReturnForm";
+import { LoanStatus } from "@/generated/prisma/enums";
 import { requirePageUser } from "@/lib/auth/guards";
 import { isStaff } from "@/lib/auth/permissions";
-import { formatDateOnly } from "@/lib/dates";
+import { formatDateOnly, formatDateTime, orgToday, toDateOnlyString } from "@/lib/dates";
 import { NotFoundError } from "@/lib/errors";
 import { getLoan } from "@/lib/services/loanService";
 
@@ -22,12 +24,18 @@ async function LoanContent({ params }: Pick<PageProps<"/loans/[id]">, "params">)
     throw error;
   });
   const staff = isStaff(user.role);
+  const active = loan.status === LoanStatus.Active;
 
   return (
     <>
       <p>
-        <Link href={staff ? "/staff/loans" : "/loans"} className="underline">
-          Back to loans
+        <Link
+          href={
+            active ? (staff ? "/staff/loans" : "/loans") : staff ? "/staff/history" : "/history"
+          }
+          className="underline"
+        >
+          {active ? "Back to loans" : "Back to history"}
         </Link>
       </p>
       <div className="flex flex-wrap items-center gap-3">
@@ -58,7 +66,38 @@ async function LoanContent({ params }: Pick<PageProps<"/loans/[id]">, "params">)
             <dd>{loan.checkedOutBy.name}</dd>
           </>
         )}
+        {/* FR-22 */}
+        {loan.returnDate && (
+          <>
+            <dt className="font-medium">Returned</dt>
+            <dd>{formatDateOnly(loan.returnDate)}</dd>
+            <dt className="font-medium">Condition on return</dt>
+            <dd className="break-words whitespace-pre-wrap">{loan.returnCondition}</dd>
+          </>
+        )}
+        {loan.returnConditionNotes && (
+          <>
+            <dt className="font-medium">Return notes</dt>
+            <dd className="break-words whitespace-pre-wrap">{loan.returnConditionNotes}</dd>
+          </>
+        )}
+        {loan.returnedBy && loan.returnedAt && (
+          <>
+            <dt className="font-medium">Return recorded by</dt>
+            <dd>
+              {loan.returnedBy.name} on {formatDateTime(loan.returnedAt)}
+            </dd>
+          </>
+        )}
       </dl>
+      {/* FR-20: staff only, and the API enforces this too. */}
+      {staff && active && (
+        <ReturnForm
+          loanId={loan.id}
+          today={toDateOnlyString(orgToday())}
+          checkoutDate={toDateOnlyString(loan.checkoutDate)}
+        />
+      )}
     </>
   );
 }

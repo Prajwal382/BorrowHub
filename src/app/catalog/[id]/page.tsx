@@ -2,10 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { ClearItemForm } from "@/components/items/ClearItemForm";
 import { ItemStatusBadge } from "@/components/items/ItemStatusBadge";
 import { RequestForm } from "@/components/requests/RequestForm";
-import { Role } from "@/generated/prisma/enums";
+import { ItemStatus, Role } from "@/generated/prisma/enums";
 import { requirePageUser } from "@/lib/auth/guards";
+import { isStaff } from "@/lib/auth/permissions";
 import { addDays, orgToday, toDateOnlyString } from "@/lib/dates";
 import { NotFoundError } from "@/lib/errors";
 import { isRequestable } from "@/lib/itemStatus";
@@ -76,6 +78,14 @@ async function ItemContent({ params }: Pick<PageProps<"/catalog/[id]">, "params"
             Edit item
           </Link>
         </p>
+      )}
+      {/* FR-21 */}
+      {isStaff(user.role) && item.status === ItemStatus.Unavailable && (
+        <ClearItemForm
+          key={item.updatedAt.toISOString()}
+          itemId={item.id}
+          conditionNotes={item.conditionNotes ?? ""}
+        />
       )}
       {/* FR-09, SRS 2.1: requesting is a borrower function. */}
       {user.role === Role.Borrower && requestable && (

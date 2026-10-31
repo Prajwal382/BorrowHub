@@ -49,6 +49,8 @@ export const createItemSchema = z.object({
 
 export const updateItemSchema = z.object(itemFields).partial();
 
+export const clearItemSchema = z.object({ conditionNotes: itemFields.conditionNotes.optional() });
+
 // A bad filter in a URL falls back to the default rather than failing the whole page.
 export const catalogQuerySchema = z.object({
   q: z.string().trim().max(MAX_SEARCH_LENGTH).optional().catch(undefined),
@@ -59,4 +61,5 @@ export const catalogQuerySchema = z.object({
 
 export type CreateItemInput = z.output<typeof createItemSchema>;
 export type UpdateItemInput = z.output<typeof updateItemSchema>;
+export type ClearItemInput = z.output<typeof clearItemSchema>;
 export type CatalogQuery = z.output<typeof catalogQuerySchema>;

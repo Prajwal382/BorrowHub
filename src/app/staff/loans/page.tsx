@@ -79,6 +79,12 @@ async function StaffLoans({ searchParams }: Pick<PageProps<"/staff/loans">, "sea
                 <dt className="font-medium">Due back</dt>
                 <dd>{formatDateOnly(loan.agreedDueDate)}</dd>
               </dl>
+              <p className="mt-2">
+                <Link href={`/loans/${loan.id}`} className="underline">
+                  Record return
+                  <span className="sr-only"> for {loan.item.name}</span>
+                </Link>
+              </p>
             </li>
           ))}
         </ul>
