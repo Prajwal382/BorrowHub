@@ -9,6 +9,8 @@
     "lint": "eslint",
     "format": "prettier --write .",
     "test": "vitest run",
+    "test:acceptance": "vitest run tests/acceptance",
+    "perf:check": "tsx scripts/perf-check.ts",
     "postinstall": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:seed": "prisma db seed",

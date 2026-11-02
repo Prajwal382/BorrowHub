@@ -1,22 +1,31 @@
+import { AsyncLocalStorage } from "node:async_hooks";
+
 // Stands in for the browser's cookies and the next/headers cookie store in tests.
-const cookies = new Map<string, string>();
+const shared = new Map<string, string>();
+const scoped = new AsyncLocalStorage<Map<string, string>>();
+const current = () => scoped.getStore() ?? shared;
 
 export const cookieJar = {
   get(name: string) {
-    const value = cookies.get(name);
+    const value = current().get(name);
     return value === undefined ? undefined : { name, value };
   },
   getAll() {
-    return [...cookies].map(([name, value]) => ({ name, value }));
+    return [...current()].map(([name, value]) => ({ name, value }));
   },
   set(name: string, value: string, options?: { maxAge?: number }) {
     if (value === "" || options?.maxAge === 0) {
-      cookies.delete(name);
+      current().delete(name);
     } else {
-      cookies.set(name, value);
+      current().set(name, value);
     }
   },
   clear() {
-    cookies.clear();
+    current().clear();
   },
 };
+
+// Gives work its own cookies, so several signed-in people can act at the same moment.
+export function withCookies<Result>(cookies: Map<string, string>, work: () => Result) {
+  return scoped.run(cookies, work);
+}

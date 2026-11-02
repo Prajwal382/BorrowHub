@@ -153,7 +153,9 @@ async function inDecisionTransaction<Result>(
     }
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
       // INV-01
-      throw new ConflictError("This item was just put on hold for someone else. Reload to see it.");
+      throw new ConflictError(
+        "This item is on hold for someone else, so this request stays pending.",
+      );
     }
     throw error;
   }
