@@ -24,11 +24,16 @@ export function LogoutButton() {
 
   return (
     <>
-      <button type="button" onClick={handleLogout} disabled={submitting} className="underline">
+      <button
+        type="button"
+        onClick={handleLogout}
+        disabled={submitting}
+        className="min-h-11 rounded-lg border border-cream/40 px-3 text-sm font-semibold text-cream hover:bg-cream/10"
+      >
         {submitting ? "Logging out…" : "Log out"}
       </button>
       {message && (
-        <span role="alert" className="error-text">
+        <span role="alert" className="rounded bg-cream px-2 text-sm text-red-800">
           {message}
         </span>
       )}

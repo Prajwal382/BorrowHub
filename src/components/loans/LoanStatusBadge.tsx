@@ -1,8 +1,8 @@
 import { LoanStatus } from "@/generated/prisma/enums";
 
-const ACTIVE = "border-blue-700 text-blue-800 dark:border-blue-400 dark:text-blue-300";
-const OVERDUE = "border-red-700 text-red-800 dark:border-red-400 dark:text-red-300";
-const CLOSED = "border-foreground/50";
+const ACTIVE = "bg-[#fbefd5] text-[#7a5a12]";
+const OVERDUE = "bg-[#f8e1e1] text-[#9b1c1c]";
+const CLOSED = "bg-[#ede7e1] text-muted";
 
 // FR-19: Overdue is a display of an Active loan, not a third status.
 export function LoanStatusBadge({ status, overdue }: { status: LoanStatus; overdue: boolean }) {
@@ -11,7 +11,7 @@ export function LoanStatusBadge({ status, overdue }: { status: LoanStatus; overd
 
   return (
     <span
-      className={`inline-block rounded-full border px-2 py-0.5 text-sm whitespace-nowrap ${classes}`}
+      className={`inline-block rounded-full px-2.5 py-1 text-xs font-bold whitespace-nowrap ${classes}`}
     >
       {label}
     </span>

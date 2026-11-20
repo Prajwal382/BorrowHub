@@ -15,17 +15,17 @@ export function Pagination({ label, page, pageCount, hrefFor }: PaginationProps)
   return (
     <nav aria-label={label} className="flex items-center justify-between gap-3">
       {page > 1 ? (
-        <Link href={hrefFor(page - 1)} className="underline">
+        <Link href={hrefFor(page - 1)} className="button-secondary">
           Previous
         </Link>
       ) : (
         <span />
       )}
-      <span>
+      <span className="text-sm font-medium text-muted">
         Page {page} of {pageCount}
       </span>
       {page < pageCount ? (
-        <Link href={hrefFor(page + 1)} className="underline">
+        <Link href={hrefFor(page + 1)} className="button-secondary">
           Next
         </Link>
       ) : (

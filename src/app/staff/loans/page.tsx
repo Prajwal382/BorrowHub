@@ -34,18 +34,18 @@ async function StaffLoans({ searchParams }: Pick<PageProps<"/staff/loans">, "sea
       <h1 className="page-title">Active loans</h1>
 
       {/* FR-19, AC-04 */}
-      <nav aria-label="Filter loans" className="flex flex-wrap gap-x-4 gap-y-1">
+      <nav aria-label="Filter loans" className="flex flex-wrap gap-2">
         <Link
           href={loansHref(undefined)}
           aria-current={query.overdue ? undefined : "page"}
-          className="underline aria-[current=page]:font-semibold aria-[current=page]:no-underline"
+          className="tab"
         >
           All active
         </Link>
         <Link
           href={loansHref(true)}
           aria-current={query.overdue ? "page" : undefined}
-          className="underline aria-[current=page]:font-semibold aria-[current=page]:no-underline"
+          className="tab"
         >
           Overdue
         </Link>
@@ -63,25 +63,25 @@ async function StaffLoans({ searchParams }: Pick<PageProps<"/staff/loans">, "sea
             <li key={loan.id} className="card">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <h2 className="font-semibold">
-                  <Link href={`/loans/${loan.id}`} className="underline">
+                  <Link href={`/loans/${loan.id}`} className="link">
                     {loan.item.name}
                   </Link>{" "}
-                  <span className="font-normal opacity-80">({loan.item.itemCode})</span>
+                  <span className="font-normal text-muted">({loan.item.itemCode})</span>
                 </h2>
                 <LoanStatusBadge status={loan.status} overdue={loan.overdue} />
               </div>
               <dl className="mt-2 grid gap-x-4 gap-y-1 sm:grid-cols-[auto_1fr]">
-                <dt className="font-medium">Borrower</dt>
+                <dt className="text-sm font-semibold text-muted">Borrower</dt>
                 <dd>
                   {loan.borrower.name} ({loan.borrower.email})
                 </dd>
-                <dt className="font-medium">Checked out</dt>
+                <dt className="text-sm font-semibold text-muted">Checked out</dt>
                 <dd>{formatDateOnly(loan.checkoutDate)}</dd>
-                <dt className="font-medium">Due back</dt>
+                <dt className="text-sm font-semibold text-muted">Due back</dt>
                 <dd>{formatDateOnly(loan.agreedDueDate)}</dd>
               </dl>
               <p className="mt-2">
-                <Link href={`/loans/${loan.id}`} className="underline">
+                <Link href={`/loans/${loan.id}`} className="link">
                   Record return
                   <span className="sr-only"> for {loan.item.name}</span>
                 </Link>

@@ -55,7 +55,7 @@ export function LoginForm() {
       </button>
       <p>
         New here?{" "}
-        <Link href="/register" className="underline">
+        <Link href="/register" className="link">
           Create an account
         </Link>
       </p>

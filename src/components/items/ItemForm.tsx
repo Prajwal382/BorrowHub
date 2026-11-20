@@ -104,7 +104,7 @@ export function ItemForm({ categories, item }: ItemFormProps) {
       />
       {canChooseStatus ? (
         <div className="flex flex-col gap-1">
-          <label htmlFor={statusFieldId} className="font-medium">
+          <label htmlFor={statusFieldId} className="form-label">
             Availability <span aria-hidden="true">*</span>
           </label>
           <select

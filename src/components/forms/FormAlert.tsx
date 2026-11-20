@@ -3,7 +3,7 @@ export function FormAlert({ message }: { message?: string }) {
     return null;
   }
   return (
-    <p role="alert" className="error-text">
+    <p role="alert" className="alert-error">
       {message}
     </p>
   );
@@ -11,5 +11,5 @@ export function FormAlert({ message }: { message?: string }) {
 
 // NFR-04: explains the mark that TextField puts on required fields.
 export function RequiredNote() {
-  return <p className="text-sm opacity-80">Fields marked * are required.</p>;
+  return <p className="text-sm text-muted">Fields marked * are required.</p>;
 }

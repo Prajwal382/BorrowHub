@@ -48,7 +48,7 @@ export function LoanHistory({
         className="flex flex-wrap items-end gap-3"
       >
         <div className="flex min-w-48 flex-1 flex-col gap-1">
-          <label htmlFor={searchId} className="font-medium">
+          <label htmlFor={searchId} className="form-label">
             {searchLabel}
           </label>
           <input
@@ -76,29 +76,29 @@ export function LoanHistory({
           {loans.map((loan) => (
             <li key={loan.id} className="card">
               <h2 className="font-semibold">
-                <Link href={`/loans/${loan.id}`} className="underline">
+                <Link href={`/loans/${loan.id}`} className="link">
                   {loan.item.name}
                 </Link>{" "}
-                <span className="font-normal opacity-80">({loan.item.itemCode})</span>
+                <span className="font-normal text-muted">({loan.item.itemCode})</span>
               </h2>
               <dl className="mt-2 grid gap-x-4 gap-y-1 sm:grid-cols-[auto_1fr]">
                 {showBorrower && (
                   <>
-                    <dt className="font-medium">Borrower</dt>
+                    <dt className="text-sm font-semibold text-muted">Borrower</dt>
                     <dd>
                       {loan.borrower.name} ({loan.borrower.email})
                     </dd>
                   </>
                 )}
-                <dt className="font-medium">Checked out</dt>
+                <dt className="text-sm font-semibold text-muted">Checked out</dt>
                 <dd>{formatDateOnly(loan.checkoutDate)}</dd>
-                <dt className="font-medium">Due back</dt>
+                <dt className="text-sm font-semibold text-muted">Due back</dt>
                 <dd>{formatDateOnly(loan.agreedDueDate)}</dd>
-                <dt className="font-medium">Returned</dt>
+                <dt className="text-sm font-semibold text-muted">Returned</dt>
                 <dd>{loan.returnDate && formatDateOnly(loan.returnDate)}</dd>
-                <dt className="font-medium">Condition at checkout</dt>
+                <dt className="text-sm font-semibold text-muted">Condition at checkout</dt>
                 <dd>{loan.checkoutCondition}</dd>
-                <dt className="font-medium">Condition on return</dt>
+                <dt className="text-sm font-semibold text-muted">Condition on return</dt>
                 <dd>{loan.returnCondition}</dd>
               </dl>
             </li>

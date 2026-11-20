@@ -21,7 +21,7 @@ async function UsersContent() {
           <li key={user.id} className="card flex flex-wrap items-center justify-between gap-3">
             <div className="min-w-0">
               <p className="font-medium">{user.name}</p>
-              <p className="text-sm opacity-80">{user.email}</p>
+              <p className="text-sm text-muted">{user.email}</p>
             </div>
             {user.id === admin.id ? (
               <span>{user.role} (you)</span>
