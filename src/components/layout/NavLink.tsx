@@ -13,7 +13,7 @@ export function NavLink({ href, children }: { href: string; children: ReactNode 
     <Link
       href={href}
       aria-current={current ? "page" : undefined}
-      className="underline aria-[current=page]:font-semibold aria-[current=page]:no-underline"
+      className="flex min-h-11 items-center rounded-lg px-3 text-[15px] font-medium text-cream hover:bg-cream/10 aria-[current=page]:bg-cream/15 aria-[current=page]:font-semibold"
     >
       {children}
     </Link>

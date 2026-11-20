@@ -10,17 +10,21 @@ import {
 } from "@/components/feedback/notices";
 
 const TONE_CLASSES: Record<Notice["tone"], string> = {
-  success: "border-green-700 dark:border-green-400",
-  error: "border-red-700 dark:border-red-400",
+  success: "border-[#1e6b3a]",
+  error: "border-[#9b1c1c]",
 };
 
 function NoticeCard({ notice }: { notice: Notice }) {
   return (
     <div
-      className={`flex items-start justify-between gap-3 rounded-md border-2 bg-background p-3 shadow-lg ${TONE_CLASSES[notice.tone]}`}
+      className={`flex items-start justify-between gap-3 rounded-xl border-2 bg-white p-4 shadow-lg ${TONE_CLASSES[notice.tone]}`}
     >
       <p className="min-w-0">{notice.text}</p>
-      <button type="button" onClick={dismissNotice} className="underline">
+      <button
+        type="button"
+        onClick={dismissNotice}
+        className="min-h-11 shrink-0 rounded-lg px-2 font-semibold text-maroon underline"
+      >
         Dismiss
       </button>
     </div>

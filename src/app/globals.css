@@ -1,29 +1,34 @@
 @import "tailwindcss";
 
+/* Campus Maroon theme. Every page builds on these tokens and the shared classes below,
+   so changing a value here restyles the whole app. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #fbf7f1;
+  --foreground: #2a1e1a;
   color-scheme: light;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-    /* NFR-04: without this, date picker icons are dark on the dark background. */
-    color-scheme: dark;
-  }
+  --color-maroon: #6b1f2a;
+  --color-maroon-dark: #4a121b;
+  --color-gold: #d9b45a;
+  --color-sand: #f4ecdf;
+  --color-line: #e5d8c6;
+  --color-ink: #2a1e1a;
+  --color-muted: #5a4a3f;
+  --color-cream: #fff8ec;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-archivo), var(--font-inter), ui-sans-serif, sans-serif;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-sans);
   /* NFR-04: unlike break-word, this also lets flex and grid items shrink, so one long unbroken
      value (a name or a pasted link) cannot make the whole page scroll sideways. */
   overflow-wrap: anywhere;
@@ -32,8 +37,14 @@ body {
 @layer base {
   /* NFR-04: keyboard users can always see where they are. */
   :focus-visible {
-    outline: 2px solid var(--foreground);
+    outline: 2px solid var(--color-maroon);
     outline-offset: 2px;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
   }
 
   /* The rule on body would otherwise let a squeezed button split its label mid-word. */
@@ -52,26 +63,26 @@ body {
 
 @layer components {
   .page-title {
-    @apply text-2xl font-semibold tracking-tight;
+    @apply font-display text-3xl font-extrabold tracking-tight text-maroon-dark;
   }
 
   .card {
-    @apply rounded-md border border-foreground/20 p-4;
+    @apply rounded-2xl border border-line bg-white p-5 shadow-sm;
   }
 
   .form-input {
-    @apply rounded-md border border-foreground/40 bg-background px-3 py-2 aria-invalid:border-red-600;
+    @apply min-h-11 rounded-lg border-2 border-line bg-white px-3 py-2 text-ink focus:border-maroon aria-invalid:border-red-700;
   }
 
   .button-primary {
-    @apply rounded-md bg-foreground px-4 py-2 font-medium text-background hover:opacity-90 disabled:opacity-60;
+    @apply inline-flex min-h-11 items-center justify-center rounded-lg bg-maroon px-5 py-2 font-semibold text-cream hover:bg-maroon-dark disabled:opacity-60;
   }
 
   .button-secondary {
-    @apply rounded-md border border-foreground/50 px-4 py-2 hover:bg-foreground/10 disabled:opacity-60;
+    @apply inline-flex min-h-11 items-center justify-center rounded-lg border-2 border-line bg-white px-5 py-2 font-semibold text-muted hover:border-maroon hover:text-maroon disabled:opacity-60;
   }
 
   .error-text {
-    @apply text-red-700 dark:text-red-400;
+    @apply text-red-800;
   }
 }
