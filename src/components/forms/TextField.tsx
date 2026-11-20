@@ -49,8 +49,15 @@ export function TextField({
 
   return (
     <div className="flex flex-col gap-1">
-      <label htmlFor={inputId} className="font-medium">
-        {label} {required ? <span aria-hidden="true">*</span> : "(optional)"}
+      <label htmlFor={inputId} className="form-label">
+        {label}{" "}
+        {required ? (
+          <span className="text-maroon" aria-hidden="true">
+            *
+          </span>
+        ) : (
+          "(optional)"
+        )}
       </label>
       {multiline ? (
         <textarea {...shared} rows={4} />
@@ -72,7 +79,7 @@ export function TextField({
         </datalist>
       )}
       {hint && (
-        <p id={hintId} className="text-sm opacity-80">
+        <p id={hintId} className="text-sm text-muted">
           {hint}
         </p>
       )}

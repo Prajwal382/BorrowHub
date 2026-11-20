@@ -27,7 +27,7 @@ export function SiteHeader() {
           <span className="font-display text-xl font-extrabold tracking-tight">BorrowHub</span>
         </Link>
         <nav aria-label="Main" className="flex flex-wrap items-center gap-1">
-          <Suspense fallback={<span className="px-3 opacity-80">Loading…</span>}>
+          <Suspense fallback={<span className="px-3 text-muted">Loading…</span>}>
             <UserNav />
           </Suspense>
         </nav>

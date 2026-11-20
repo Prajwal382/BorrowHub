@@ -34,7 +34,7 @@ async function LoanContent({ params }: Pick<PageProps<"/loans/[id]">, "params">)
           href={
             active ? (staff ? "/staff/loans" : "/loans") : staff ? "/staff/history" : "/history"
           }
-          className="underline"
+          className="link"
         >
           {active ? "Back to loans" : "Back to history"}
         </Link>
@@ -44,47 +44,47 @@ async function LoanContent({ params }: Pick<PageProps<"/loans/[id]">, "params">)
         <LoanStatusBadge status={loan.status} overdue={loan.overdue} />
       </div>
       <dl className="grid gap-x-6 gap-y-2 sm:grid-cols-[auto_1fr]">
-        <dt className="font-medium">Item ID</dt>
+        <dt className="text-sm font-semibold text-muted">Item ID</dt>
         <dd>{loan.item.itemCode}</dd>
         {staff && (
           <>
-            <dt className="font-medium">Borrower</dt>
+            <dt className="text-sm font-semibold text-muted">Borrower</dt>
             <dd>
               {loan.borrower.name} ({loan.borrower.email})
             </dd>
           </>
         )}
-        <dt className="font-medium">Checked out</dt>
+        <dt className="text-sm font-semibold text-muted">Checked out</dt>
         <dd>{formatDateOnly(loan.checkoutDate)}</dd>
-        <dt className="font-medium">Due back</dt>
+        <dt className="text-sm font-semibold text-muted">Due back</dt>
         <dd>{formatDateOnly(loan.agreedDueDate)}</dd>
-        <dt className="font-medium">Condition at checkout</dt>
+        <dt className="text-sm font-semibold text-muted">Condition at checkout</dt>
         <dd className="whitespace-pre-wrap">{loan.checkoutCondition}</dd>
         {/* NFR-06 */}
         {loan.checkedOutBy && (
           <>
-            <dt className="font-medium">Checked out by</dt>
+            <dt className="text-sm font-semibold text-muted">Checked out by</dt>
             <dd>{loan.checkedOutBy.name}</dd>
           </>
         )}
         {/* FR-22 */}
         {loan.returnDate && (
           <>
-            <dt className="font-medium">Returned</dt>
+            <dt className="text-sm font-semibold text-muted">Returned</dt>
             <dd>{formatDateOnly(loan.returnDate)}</dd>
-            <dt className="font-medium">Condition on return</dt>
+            <dt className="text-sm font-semibold text-muted">Condition on return</dt>
             <dd className="whitespace-pre-wrap">{loan.returnCondition}</dd>
           </>
         )}
         {loan.returnConditionNotes && (
           <>
-            <dt className="font-medium">Return notes</dt>
+            <dt className="text-sm font-semibold text-muted">Return notes</dt>
             <dd className="whitespace-pre-wrap">{loan.returnConditionNotes}</dd>
           </>
         )}
         {loan.returnedBy && loan.returnedAt && (
           <>
-            <dt className="font-medium">Return recorded by</dt>
+            <dt className="text-sm font-semibold text-muted">Return recorded by</dt>
             <dd>
               {loan.returnedBy.name} on {formatDateTime(loan.returnedAt)}
             </dd>

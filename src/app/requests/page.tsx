@@ -26,7 +26,7 @@ async function MyRequests({ searchParams }: Pick<PageProps<"/requests">, "search
       {requests.length === 0 ? (
         <p>
           You have no requests yet.{" "}
-          <Link href="/catalog" className="underline">
+          <Link href="/catalog" className="link">
             Browse the catalog
           </Link>{" "}
           to find something to borrow.
@@ -37,13 +37,13 @@ async function MyRequests({ searchParams }: Pick<PageProps<"/requests">, "search
             <li key={request.id} className="card">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <h2 className="font-semibold">
-                  <Link href={`/catalog/${request.item.id}`} className="underline">
+                  <Link href={`/catalog/${request.item.id}`} className="link">
                     {request.item.name}
                   </Link>
                 </h2>
                 <RequestStatusBadge status={request.status} />
               </div>
-              <p className="text-sm opacity-80">
+              <p className="text-sm text-muted">
                 {request.item.itemCode} · Submitted {formatDateTime(request.submittedAt)}
               </p>
               <p className="mt-2">

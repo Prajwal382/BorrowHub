@@ -13,7 +13,7 @@ export default function ErrorPage({ retry }: { retry: () => void }) {
         <button type="button" onClick={() => retry()} className="button-primary">
           Try again
         </button>
-        <Link href="/" className="underline">
+        <Link href="/" className="link">
           Go to the home page
         </Link>
       </div>

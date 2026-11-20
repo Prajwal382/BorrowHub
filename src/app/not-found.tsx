@@ -11,7 +11,7 @@ export default function NotFound() {
       <h1 className="page-title">Page not found</h1>
       <p>This page does not exist, or your account cannot open it. Check the link and try again.</p>
       <p>
-        <Link href="/" className="underline">
+        <Link href="/" className="link">
           Go to the home page
         </Link>
       </p>

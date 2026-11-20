@@ -94,7 +94,7 @@ describe("TextField (NFR-04)", () => {
 
     expect(html).toContain('aria-invalid="true"');
     expect(describedBy).toHaveLength(2);
-    expect(html).toContain(`id="${describedBy[0]}" class="text-sm opacity-80">Your full name.`);
+    expect(html).toContain(`id="${describedBy[0]}" class="text-sm text-muted">Your full name.`);
     expect(html).toContain(`id="${describedBy[1]}" class="error-text text-sm">Enter a name.`);
   });
 });

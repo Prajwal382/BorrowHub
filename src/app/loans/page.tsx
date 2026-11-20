@@ -32,13 +32,13 @@ async function MyLoans({ searchParams }: Pick<PageProps<"/loans">, "searchParams
             <li key={loan.id} className="card">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <h2 className="font-semibold">
-                  <Link href={`/loans/${loan.id}`} className="underline">
+                  <Link href={`/loans/${loan.id}`} className="link">
                     {loan.item.name}
                   </Link>
                 </h2>
                 <LoanStatusBadge status={loan.status} overdue={loan.overdue} />
               </div>
-              <p className="text-sm opacity-80">{loan.item.itemCode}</p>
+              <p className="text-sm text-muted">{loan.item.itemCode}</p>
               <p className="mt-2">
                 <span className="font-medium">Due back:</span> {formatDateOnly(loan.agreedDueDate)}
               </p>

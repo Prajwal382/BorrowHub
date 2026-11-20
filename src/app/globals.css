@@ -85,4 +85,21 @@ body {
   .error-text {
     @apply text-red-800;
   }
+
+  .form-label {
+    @apply text-sm font-semibold text-ink;
+  }
+
+  .link {
+    @apply font-semibold text-maroon underline decoration-maroon/40 underline-offset-4 hover:decoration-maroon;
+  }
+
+  /* Filter tabs, such as All active / Overdue. The current one is filled in. */
+  .tab {
+    @apply flex min-h-11 items-center rounded-full border-2 border-line bg-white px-4 text-sm font-semibold text-muted hover:border-maroon hover:text-maroon aria-[current=page]:border-maroon aria-[current=page]:bg-maroon aria-[current=page]:text-cream;
+  }
+
+  .alert-error {
+    @apply rounded-xl border-2 border-[#9b1c1c] bg-[#f8e1e1] px-4 py-3 font-medium text-[#7f1616];
+  }
 }

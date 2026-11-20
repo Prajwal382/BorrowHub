@@ -44,13 +44,13 @@ async function StaffRequests({ searchParams }: Pick<PageProps<"/staff/requests">
     <>
       <h1 className="page-title">Requests</h1>
 
-      <nav aria-label="Filter requests by status" className="flex flex-wrap gap-x-4 gap-y-1">
+      <nav aria-label="Filter requests by status" className="flex flex-wrap gap-2">
         {FILTERS.map((option) => (
           <Link
             key={option}
             href={filterHref(option)}
             aria-current={option === filter ? "page" : undefined}
-            className="underline aria-[current=page]:font-semibold aria-[current=page]:no-underline"
+            className="tab"
           >
             {option === ALL ? ALL : REQUEST_STATUS_LABELS[option]}
           </Link>
@@ -69,38 +69,38 @@ async function StaffRequests({ searchParams }: Pick<PageProps<"/staff/requests">
             <li key={request.id} className="flex flex-col gap-2 card">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <h2 className="font-semibold">
-                  <Link href={`/catalog/${request.item.id}`} className="underline">
+                  <Link href={`/catalog/${request.item.id}`} className="link">
                     {request.item.name}
                   </Link>{" "}
-                  <span className="font-normal opacity-80">({request.item.itemCode})</span>
+                  <span className="font-normal text-muted">({request.item.itemCode})</span>
                 </h2>
                 <RequestStatusBadge status={request.status} />
               </div>
               <dl className="grid gap-x-4 gap-y-1 sm:grid-cols-[auto_1fr]">
-                <dt className="font-medium">Borrower</dt>
+                <dt className="text-sm font-semibold text-muted">Borrower</dt>
                 <dd>
                   {request.borrower.name} ({request.borrower.email})
                 </dd>
-                <dt className="font-medium">Intended use</dt>
+                <dt className="text-sm font-semibold text-muted">Intended use</dt>
                 <dd>{request.intendedUse}</dd>
-                <dt className="font-medium">Requested return</dt>
+                <dt className="text-sm font-semibold text-muted">Requested return</dt>
                 <dd>{formatDateOnly(request.requestedReturnDate)}</dd>
-                <dt className="font-medium">Submitted</dt>
+                <dt className="text-sm font-semibold text-muted">Submitted</dt>
                 <dd>{formatDateTime(request.submittedAt)}</dd>
-                <dt className="font-medium">Item status</dt>
+                <dt className="text-sm font-semibold text-muted">Item status</dt>
                 <dd>
                   <ItemStatusBadge status={request.item.status} />
                 </dd>
                 {request.rejectionReason && (
                   <>
-                    <dt className="font-medium">Reason for rejection</dt>
+                    <dt className="text-sm font-semibold text-muted">Reason for rejection</dt>
                     <dd>{request.rejectionReason}</dd>
                   </>
                 )}
                 {/* NFR-06 */}
                 {request.decidedBy && request.decidedAt && (
                   <>
-                    <dt className="font-medium">Decided by</dt>
+                    <dt className="text-sm font-semibold text-muted">Decided by</dt>
                     <dd>
                       {request.decidedBy.name} on {formatDateTime(request.decidedAt)}
                     </dd>
@@ -108,7 +108,7 @@ async function StaffRequests({ searchParams }: Pick<PageProps<"/staff/requests">
                 )}
                 {request.cancelledBy && request.cancelledAt && (
                   <>
-                    <dt className="font-medium">Hold cancelled by</dt>
+                    <dt className="text-sm font-semibold text-muted">Hold cancelled by</dt>
                     <dd>
                       {request.cancelledBy.name} on {formatDateTime(request.cancelledAt)}
                     </dd>
